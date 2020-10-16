@@ -209,8 +209,9 @@ function possible(pos,turn,freshmap,eptoken)
 			end
 		end
 	end)
+	local kingPos = findKing(pos,turn)
 	scrollTurn(pos,turn,function(s,l)
-		local pin = pinned(pos,l,findKing(pos,turn))
+		local pin = pinned(pos,l,kingPos)
 		if pin then
 			p[l].moves = filterPin(p[l].moves,pin)
 		end
