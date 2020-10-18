@@ -1,20 +1,31 @@
 require("global")
 function BoardMap(square,bX,bY)
-	local cMap = Map:new{}
 	local bMap = Map:new{}
 	local cX,cY = 0,0
 	for x=1,8 do
 		for y=1,8 do
-			cMap[x][y].x = cX
-			cMap[x][y].y = cY
-			bMap[x][y].x = cX + bX
-			bMap[x][y].y = cY + bY
+			bMap[x][y].x = cX+bX
+			bMap[x][y].y = cY+bY
 			cY = cY + square
 		end
 		cY = 0
 		cX = cX + square
 	end
-	return cMap,bMap
+	return bMap
+end
+function CanvasMap(square)
+	local cMap = Map:new{}
+	local cX,cY = 0,0
+	for x=1,8 do
+		for y=1,8 do
+			cMap[x][y].x = cX
+			cMap[x][y].y = cY
+			cY = cY + square
+		end
+		cY = 0
+		cX = cX + square
+	end
+	return cMap
 end
 function PngMap(square,bX,bY,pngSize,scale)
 	local map = Map:new{}

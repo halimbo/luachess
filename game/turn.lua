@@ -16,8 +16,6 @@ end
 Turn = {}
 function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 	local g = {}
-	setmetatable(g,self)
-	self.__index = self
 	local check,avail = isCheck(pos,turn,freshmap,eptoken)
 	if check and avail then
 		g.possible = avail
@@ -76,7 +74,7 @@ function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 		if cs then
 			fmap[ cs[1] ] = false
 		end
-		return self:new(new,self.turn+1,fmap,eptoken,{l,s})
+		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s})
 	end
 	function g:isPiece(l)
 		if self.pos[l]==0 or not hasTurn(self.pos[l],self.turn) then

@@ -3,11 +3,40 @@ require("game/standard")
 require("game/turn")
 require("display/input")
 require("display/board")
+local function compare(a,b)
+	local same = true
+	do8x8break(a, function (s,l) if not (s==b[l]) then same = false return true end end)
+	return same
+end
+local function drawRepetition(timeline)
+	local count = {}
+	for i,T in ipairs(timeline) do
+		count[i] = 0
+		for _i,_t in ipairs(timeline) do
+			if compare(T.pos,_t.pos) then
+				if ( (T.turn%2==0) and (_t.turn%2==0) ) or
+				( (T.turn%2==1) and (_t.turn%2==1) ) then
+					count[i] = count[i]+1
+				end
+			end
+		end
+		if count[i] > 2 then return true end
+	end
+	return false
+end
+local function draw50(T,from,to)
+	if T.pos[to] == 0 or not (abs(T.pos[from])==1) then
+		return true
+	else
+		return false
+	end
+end
 Session = {}
 function Session:new(origin,size)
 	local s = {}
 	local pos = standard()
 	local turn = 1
+	s.draw = 0
 	s.timeline = {}
 	setmetatable(s,self)
 	self.__index = self
@@ -34,6 +63,17 @@ function Session:new(origin,size)
 			elseif newT then
 				self.activeTurn = newT.turn
 				table.insert(self.timeline,newT)
+				if draw50(T,newT.lastMove[1],newT.lastMove[2]) then
+					self.draw = self.draw +1
+				else
+					self.draw = 0
+				end
+				if self.draw >= 100 then
+					print("Draw by 50-move rule")
+				end
+				if drawRepetition(self.timeline) then
+					print("Draw by threefold repetition")
+				end
 				B:newTurn(newT)
 			else
 				B:setDiff("select",false)
@@ -50,6 +90,17 @@ function Session:new(origin,size)
 			if newT then
 				self.activeTurn = newT.turn
 				table.insert(self.timeline,newT)
+				if draw50(T,newT.lastMove[1],newT.lastMove[2]) then
+					self.draw = self.draw +1
+				else
+					self.draw = 0
+				end
+				if self.draw >= 100 then
+					print("Draw by 50-move rule")
+				end
+				if drawRepetition(self.timeline) then
+					print("Draw by threefold repetition")
+				end
 				B:newTurn(newT)
 			elseif not same then
 				B:setDiff("select",false)

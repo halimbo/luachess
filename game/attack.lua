@@ -27,6 +27,7 @@ function pawnAT(pos,l)
 	for _,dir in pairs(take) do
 		local s = l:move(dir)
 		if s then
+			s.dir = dir
 			table.insert(a,s)
 		end
 	end
@@ -39,6 +40,7 @@ function knightAT(pos,l)
 		if dir > 16 then return end
 		local s = l:move(dir)
 		if s then
+			s.dir = dir
 			table.insert(a,s)
 		end
 		dir = dir + 1
@@ -54,6 +56,7 @@ function kingAT(pos,l)
 		if dir > 8 then return end
 		local s = l:move(dir)
 		if s then
+			s.dir = dir
 			table.insert(a,s)
 		end
 		dir = dir + 1

@@ -269,7 +269,7 @@ function isCheck(pos,turn,freshmap,eptoken)
 			if block_check then
 				local blocks = {}
 				local _r = i - 1 --i is the spot on the atk-list
-				while oppAT[_r].dir == move.dir and oppAT[_r].id == move.id do
+				while _r>0 and oppAT[_r].dir == move.dir and oppAT[_r].id == move.id do
 					table.insert(blocks,oppAT[_r])
 					_r = _r - 1
 				end

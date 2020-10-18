@@ -44,28 +44,30 @@ function Board:new(origin,size,pos)
 	end
 	function d:init(x,y)
 		local bX, bY = self.origin(x,y)
+		bX = math.floor(bX+0.5)
+		bY = math.floor(bY+0.5)
 		local boardSize = self.size(x,y)
 		self.boardSize = boardSize
 		self.bX,self.bY = bX,bY
 		local pngSize, pngFolder
-		if boardSize <= 600 then
+		if boardSize <= 525 then
 			pngSize = 80
 			pngFolder = "80"
 		else
-			pngSize = 320
-			pngFolder = "320"
+			pngSize = 150
+			pngFolder = "150"
 		end
 		local square = boardSize/8
 		self.scale = 1/(pngSize/(square*0.96)) --tweaking scale *0.96
 		self.inputMap = InputMap(square,bX,bY)
 		self.pngMap = PngMap(square,bX,bY,pngSize,self.scale)
-		local canvas = love.graphics.newCanvas(boardSize,boardSize)
-		self.canvasMap, self.boardMap = BoardMap(square,bX,bY)
-		love.graphics.setCanvas(canvas)
+		self.boardMap = BoardMap(square,bX,bY)
+		self.canvas = love.graphics.newCanvas(boardSize,boardSize)
+		self.canvasMap = CanvasMap(square) 
+		love.graphics.setCanvas(self.canvas)
 			love.graphics.setBlendMode("alpha")
 			self:drawBoard()
 		love.graphics.setCanvas()
-		self.canvas = canvas
 		if not (pngSize==self.pngSize) then
 			self.pngSize = pngSize
 			self.pngFolder = pngFolder
