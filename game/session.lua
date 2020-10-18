@@ -9,20 +9,20 @@ local function compare(a,b)
 	return same
 end
 local function drawRepetition(timeline)
-	local count = {}
-	for i,T in ipairs(timeline) do
-		count[i] = 0
-		for _i,_t in ipairs(timeline) do
-			if compare(T.pos,_t.pos) then
-				if ( (T.turn%2==0) and (_t.turn%2==0) ) or
-				( (T.turn%2==1) and (_t.turn%2==1) ) then
-					count[i] = count[i]+1
-				end
-			end
+	local count = 0
+	local i = #timeline
+	local turn = timeline[i]
+	local c = i-2
+	local comp = timeline[c]
+	while comp do
+		if compare(turn.pos,comp.pos) then
+			count= count+1
 		end
-		if count[i] > 2 then return true end
+		c = c - 2
+		comp = timeline[c]
 	end
-	return false
+	if count > 2 then return true
+	else return false end
 end
 local function draw50(T,from,to)
 	if T.pos[to] == 0 or not (abs(T.pos[from])==1) then
