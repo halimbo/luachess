@@ -24,11 +24,27 @@ local function drawRepetition(timeline)
 	if count > 2 then return true
 	else return false end
 end
-local function draw50(T,from,to)
+local function endless(T,from,to)
 	if T.pos[to] == 0 or not (abs(T.pos[from])==1) then
 		return true
 	else
 		return false
+	end
+end
+draw_50 = 0
+local function print_draw(timeline)
+	local T = timeline[#timeline-1]
+	local newT = timeline[#timeline]
+	if endless(T,newT.lastMove[1],newT.lastMove[2]) then
+		draw_50 = draw_50 +1
+	else
+		draw_50 = 0
+	end
+	if draw_50 >= 100 then
+		print("Draw by 50-move rule")
+	end
+	if drawRepetition(timeline) then
+		print("Draw by threefold repetition")
 	end
 end
 Session = {}
@@ -36,7 +52,6 @@ function Session:new(origin,size)
 	local s = {}
 	local pos = standard()
 	local turn = 1
-	s.draw = 0
 	s.timeline = {}
 	setmetatable(s,self)
 	self.__index = self
@@ -63,17 +78,7 @@ function Session:new(origin,size)
 			elseif newT then
 				self.activeTurn = newT.turn
 				table.insert(self.timeline,newT)
-				if draw50(T,newT.lastMove[1],newT.lastMove[2]) then
-					self.draw = self.draw +1
-				else
-					self.draw = 0
-				end
-				if self.draw >= 100 then
-					print("Draw by 50-move rule")
-				end
-				if drawRepetition(self.timeline) then
-					print("Draw by threefold repetition")
-				end
+				print_draw(self.timeline)
 				B:newTurn(newT)
 			else
 				B:setDiff("select",false)
@@ -90,17 +95,7 @@ function Session:new(origin,size)
 			if newT then
 				self.activeTurn = newT.turn
 				table.insert(self.timeline,newT)
-				if draw50(T,newT.lastMove[1],newT.lastMove[2]) then
-					self.draw = self.draw +1
-				else
-					self.draw = 0
-				end
-				if self.draw >= 100 then
-					print("Draw by 50-move rule")
-				end
-				if drawRepetition(self.timeline) then
-					print("Draw by threefold repetition")
-				end
+				print_draw(self.timeline)
 				B:newTurn(newT)
 			elseif not same then
 				B:setDiff("select",false)

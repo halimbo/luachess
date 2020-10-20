@@ -3,8 +3,8 @@ require("game/logic")
 require("game/change")
 local function validate(pc,s)
 	for _,l in ipairs(pc.moves) do
-		if l==s and l.enpas then -- true since pawnM() in Logic:new()
-			return true,true --trigger en passant in game:move()
+		if l==s and l.enpas then
+			return true,true
 		elseif l==s and l.castles then
 			return true,nil,l.castles
 		elseif l==s then
@@ -46,7 +46,7 @@ function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 		if cs then
 			new = castles(pos,l,s,cs[1],cs[2])
 		elseif ep then
-			new = enpas(pos,l,s,loc:new(s.x,s.y-pc.id))
+			new = enpas(pos,l,s,loc:new(s.x,s.y-pc.id)) -- subtract capturing pawn
 		elseif abs(pc.id)==1 and (s.y==1 or s.y==8) then
 			local prom
 			if love.keyboard.isDown("2") then
@@ -64,7 +64,7 @@ function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 		end
 		-- creating new turn data
 		if abs(new[s]) == 1 and abs(l.y-s.y)==2 then
-			eptoken = loc:new( s.x, l.y-(l.y-s.y)/2 )
+			eptoken = loc:new( s.x, s.y-pc.id ) -- subtract pushed pawn
 			eptoken.id = 7*new[s]
 		end
 		local fmap = Map:copy(self.freshmap)

@@ -172,7 +172,7 @@ function possible(pos,turn,freshmap,eptoken)
 		enpasMap = Map:new(0)
 		do8x8(pos,function(s,l) enpasMap[l] = s end)
 		enpasMap[eptoken] = eptoken.id
-		--just putting an invisible pawn on square enpas = { x=pawnX,y=y-move.distance/2-->,id=(+-)1*7}
+		--invisible pawn 
 	end
 	local p = Map:new(false)
 	scrollTurn(pos,turn,function(s,l,x,y)
@@ -236,6 +236,7 @@ function isCheck(pos,turn,freshmap,eptoken)
 					for _,m in ipairs(escape) do
 						print("escape to "..letters[m.x]..m.y)
 					end
+					available = Map:new(false)
 					available[kingPos] = {}
 					available[kingPos].id = pos[kingPos]
 					available[kingPos].moves = escape
@@ -268,7 +269,7 @@ function isCheck(pos,turn,freshmap,eptoken)
 			end
 			if block_check then
 				local blocks = {}
-				local _r = i - 1 --i is the spot on the atk-list
+				local _r = i - 1 --going backwards on the atk-list
 				while _r>0 and oppAT[_r].dir == move.dir and oppAT[_r].id == move.id do
 					table.insert(blocks,oppAT[_r])
 					_r = _r - 1
@@ -280,6 +281,7 @@ function isCheck(pos,turn,freshmap,eptoken)
 						if pc and not ( abs(pc.id)==8 ) then
 							for _,b in ipairs(blocks) do
 								if contains(pc.moves, b) then
+									blockable = true
 									print(letters[l.x]..l.y,"can block on ", letters[b.x]..b.y)
 									if not available[l] then
 										available[l] = {}
@@ -287,7 +289,6 @@ function isCheck(pos,turn,freshmap,eptoken)
 										available[l].moves = {}
 									end
 									table.insert(available[l].moves, b)
-									blockable = true
 								end
 							end
 						end
