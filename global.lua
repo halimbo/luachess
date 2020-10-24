@@ -113,15 +113,6 @@ function Map:copy(M)
 	end
 	return m
 end
-function scrollPieces(pos,f)
-	for x=1,8 do
-		for y=1,8 do
-			if not (pos[x][y]==0) then
-				f(pos[x][y],loc:new(x,y),x,y)
-			end
-		end
-	end
-end
 function hasTurn(id,turn)
 	if turn%2==0 and not (id<0) then return false
 	elseif not (turn%2==0) and id<0 then return false end
@@ -173,6 +164,9 @@ function contains(list,item)
 		end
 	end
 	return false
+end
+local function pop(t)
+	return t[#t]
 end
 C = {}
 C.black = { r = 0, g = 0, b = 0 }

@@ -17,8 +17,7 @@ local function flipMatrix(matrix)
 	end
 	return m
 end
-PieceMap = {}
-function PieceMap:new(pos,flip)
+function PieceMap(pos,flip)
 	local p = {}
 	if flip then
 		p.isFlipped = true

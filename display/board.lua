@@ -1,11 +1,8 @@
 require("display/graphics")
 require("display/piecemap")
 require("global")
-Board = {}
-function Board:new(origin,size,pos)
+function Board(origin,size,pos)
 	local d = {}
-	setmetatable(d,self)
-	self.__index = self
 	d.defaults = {
 		style = 1,
 		color = 3
@@ -25,7 +22,7 @@ function Board:new(origin,size,pos)
 	d.origin = origin
 	d.size = size
 	d.diff = {}
-	d.pMap = PieceMap:new(pos)
+	d.pMap = PieceMap(pos)
 	d.pieces = d.pMap:get()
 	function d:setDiff(type,l,c,a)
 		if l then
@@ -44,8 +41,6 @@ function Board:new(origin,size,pos)
 	end
 	function d:init(x,y)
 		local bX, bY = self.origin(x,y)
-		bX = math.floor(bX+0.5)
-		bY = math.floor(bY+0.5)
 		local boardSize = self.size(x,y)
 		self.boardSize = boardSize
 		self.bX,self.bY = bX,bY
@@ -208,13 +203,15 @@ function Board:new(origin,size,pos)
 	end
 	function d:newTurn(T)
 		local flip = self.pMap:rotation()
-		self.pMap = PieceMap:new(T.pos)
+		self.pMap = PieceMap(T.pos)
 		if flip then self.pMap:flipBoard() end
 		self.pieces = self.pMap:get()
-		self:setDiff("select",false)
 		if T.lastMove then
 			self:setDiff("from",self.pMap:translate(T.lastMove[1]),C.black,0.4)
 			self:setDiff("to",self.pMap:translate(T.lastMove[2]),C.black,0.4)
+		else
+			self:setDiff("from",false)
+			self:setDiff("to",false)
 		end
 		if T.checkmate then
 			self:setDiff("CM",self.pMap:translate(T.checkmate),C.red,0.4)

@@ -1,8 +1,50 @@
 require("global")
 require("game/logic")
-require("game/change")
+local function normal(pos,l,s)
+	local map = Map:copy(pos)
+	local str
+	if map[s] == 0 then
+		str = names[abs(map[l])]..letters[s.x]..s.y
+	elseif abs(map[l]) == 1 then
+		str = letters[l.x].."x"..letters[s.x]..s.y
+	else
+		str = names[abs(map[l])].."x"..letters[s.x]..s.y
+	end
+	map[s] = map[l]
+	map[l] = 0
+	print(str)
+	return map
+end
+local function castles(pos,l,s,rook0,rook)
+	local map = Map:copy(pos)
+	map[s] = map[l]
+	map[l] = 0
+	map[rook] = map[rook0]
+	map[rook0] = 0
+	if rook0.x == 8 then
+		print("0-0")
+	else
+		print ("0-0-0")
+	end
+	return map
+end
+local function enpas(pos,l,s,e)
+	local map = Map:copy(pos)
+	map[s] = map[l]
+	map[l] = 0
+	map[e] = 0
+	print( letters[l.x].."x"..letters[s.x]..s.y )
+	return map
+end
+local function queening(pos,l,s,queen)
+	local map = Map:copy(pos)
+	map[s] = queen
+	map[l] = 0
+	print( letters[s.x]..s.y.."="..names[abs(queen)])
+	return map
+end
 local function validate(pc,s)
-	for _,l in ipairs(pc.moves) do
+	for _,l in pairs(pc.moves) do
 		if l==s and l.enpas then
 			return true,true
 		elseif l==s and l.castles then
@@ -15,27 +57,27 @@ local function validate(pc,s)
 end
 Turn = {}
 function Turn:new(pos,turn,freshmap,eptoken,lastMove)
-	local g = {}
+	local t = {}
 	local check,avail = isCheck(pos,turn,freshmap,eptoken)
 	if check and avail then
-		g.possible = avail
+		t.possible = avail
 	elseif check and not avail then
-		g.possible = Map:new(false)
-		g.checkmate = findKing(pos,turn)
+		t.possible = Map:new(false)
+		t.checkmate = findKing(pos,turn)
 	else
-		g.possible = possible(pos,turn,freshmap,eptoken)
+		t.possible = possible(pos,turn,freshmap,eptoken)
 		local stalemate = true
-		do8x8break(g.possible,function (s,l) if s and #s.moves>0 then stalemate = false return true end end)
+		do8x8break(t.possible,function (s,l) if s and #s.moves>0 then stalemate = false return true end end)
 		if stalemate then
 			print("stalemate")
-			g.stalemate = findKing(pos,turn)
+			t.stalemate = findKing(pos,turn)
 		end
 	end
-	g.pos = pos
-	g.turn = turn
-	g.freshmap = freshmap
-	g.lastMove = lastMove
-	function g:move(l,s)
+	t.pos = pos
+	t.turn = turn
+	t.freshmap = freshmap
+	t.lastMove = lastMove
+	function t:move(l,s)
 		local eptoken
 		local pc = self.possible[l]
 		if not pc then print("?") return false end
@@ -76,12 +118,5 @@ function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 		end
 		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s})
 	end
-	function g:isPiece(l)
-		if self.pos[l]==0 or not hasTurn(self.pos[l],self.turn) then
-			return false
-		else
-			return true
-		end
-	end
-	return g
+	return t
 end

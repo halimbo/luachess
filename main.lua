@@ -1,16 +1,16 @@
-require("game/session")
+require("display/board")
+require("game/input")
+require("game/game")
+require("game/standard")
 require("global")
-nofloat = false --deactivate floating pieces --> touch only input
 local dim_x
 local dim_y
 local resize
-local resize_dim_x
-local resize_dim_y
-local isFullscreen
-local S
+local I
+local B
+local G
 function love.draw()
 	if resize then love.graphics.clear(0,0,0) return end
-	local B = S.board
 	love.graphics.setColor(1,1,1)
 	love.graphics.setBlendMode("alpha","premultiplied")
 	love.graphics.draw(B.canvas,B.bX,B.bY)
@@ -23,63 +23,109 @@ function love.draw()
 	end
 end
 function love.load()
-	local origin = function(x,y) if x<y then return 0,y/2-x/2 else return x/2-y/2,0 end end
-	local size = function(x,y) return x<y and x or y end
-	S = Session:new(origin,size)
-	dim_x, dim_y = love.graphics.getDimensions()
-	S.board:init(dim_x,dim_y)
+	local origin = function(x,y)
+		if x<y then
+			return 0,math.floor(y/2-x/2+0.5)
+		else
+			return math.floor(x/2-y/2+0.5),0
+		end
+	end
+	local size = function(x,y)
+		return x<y and x or y
+	end
+	G = Game(standard())
+	B = Board(origin,size,standard())
+	B:init(love.graphics.getDimensions())
+	if love.window.getFullscreen() then
+		dim_x, dim_y = 500,500
+	end
+	I = click_and_drag()
 end
 function love.update(dt)
 	if resize then
 		resize = resize + dt
 		if resize > 0.5 then
 			resize = false
-			S.board:init(resize_dim_x,resize_dim_y)
+			B:init(love.graphics.getDimensions())
 		end
 	end
 end
 function love.resize(x,y)
 	resize = 0
-	resize_dim_x = x
-	resize_dim_y = y
 end
 function love.keypressed(key)
 	if key == "escape" then
 		love.event.quit()
 	elseif key == "f" then
-		S.board:Flip()
+		B:Flip()
 	elseif key == "left" then
-		S:takeback()
+		I:reset();B:setDiff("select",false)
+		local T = G:takeback()
+		if T then
+			B:newTurn(T)
+		end
 	elseif key == "c" then
-		S.board:changeColor()
+		B:changeColor()
 	elseif key == "s" then
-		S.board:changeStyle()
+		B:changeStyle()
 	elseif key == "v" then
-		if isFullscreen then
-			love.window.setMode(dim_x,dim_y,{fullscreen = false,resizable = true})
-			isFullscreen = false
-			resize_dim_x = dim_x
-			resize_dim_y = dim_y
+		local f = love.window.getFullscreen()
+		if f then
+			love.window.setMode(dim_x,dim_y,
+				{fullscreen = not f,
+				resizable = true,
+				minwidth = 300,
+				minheight = 300})
 		else
 			dim_x = love.graphics.getWidth()
 			dim_y = love.graphics.getHeight()
-			love.window.setMode(dim_x,dim_y,{fullscreen = true,resizable = true})
-			isFullscreen = true
-			resize_dim_x = love.graphics.getWidth()
-			resize_dim_y = love.graphics.getHeight()
+			love.window.setMode(dim_x,dim_y,
+			{fullscreen = not f,
+			resizable = true,
+			minwidth = 300,
+			minheight = 300})
 		end
 		resize = 0
 	end
 end
 function love.mousepressed(x,y,key)
 	if key==1 then
-		S:mouse(x,y)
-	elseif key == 2 and not nofloat then
-		S.board:unsetFloat()
+		local click, here = B:click(x,y)
+		if not click then return end
+		local sel, dest = I:mouseOn(here,G:isPiece(here))
+		if not sel then I:reset();B:setDiff("select",false) return end
+		if not dest then
+			B:setDiff("select",click,C.yellow,0.7)
+			if I:float() then
+				B:newFloat(click)
+			end
+		else
+			I:reset();B:setDiff("select",false)
+			local T = G:tryMove(sel,dest)
+			if T then
+				B:newTurn(T)
+			end
+		end
+	elseif key == 2 then
+		I:reset();B:setDiff("select",false)
+		B:unsetFloat()
 	end
 end
 function love.mousereleased(x,y,key)
 	if key == 1 then
-		S:mouseRelease(x,y)
+		local click, here = B:click(x,y)
+		if not click then return end
+		local sel, dest = I:mouseOff(here)
+		if not sel then I:reset();B:setDiff("select",false) return end
+		if dest then
+			I:reset();B:setDiff("select",false)
+			local T = G:tryMove(sel,dest)
+			if T then
+				B:newTurn(T)
+			end
+		end 
+	end
+	if B.float then
+		B:unsetFloat()
 	end
 end

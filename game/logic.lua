@@ -325,3 +325,47 @@ function isCheck(pos,turn,freshmap,eptoken)
 		return false
 	end
 end
+local function compare(a,b)
+	local same = true
+	do8x8break(a, function (s,l) if not (s==b[l]) then same = false return true end end)
+	return same
+end
+local function drawRepetition(timeline)
+	local count = 1
+	local i = #timeline
+	local turn = timeline[i]
+	local c = i-2
+	local comp = timeline[c]
+	while comp do
+		if compare(turn.pos,comp.pos) then
+			count= count+1
+		end
+		c = c - 2
+		comp = timeline[c]
+	end
+	if count > 2 then return true
+	else return false end
+end
+local function endless(T,from,to)
+	if T.pos[to] == 0 or not (abs(T.pos[from])==1) then
+		return true
+	else
+		return false
+	end
+end
+function check_draw(timeline,draw50)
+	local T = timeline[#timeline-1]
+	local newT = timeline[#timeline]
+	if endless(T,newT.lastMove[1],newT.lastMove[2]) then
+		draw50 = draw50 +1
+	else
+		draw50 = 0
+	end
+	if draw50 >= 100 then
+		print("Draw by 50-move rule")
+	end
+	if drawRepetition(timeline) then
+		print("Draw by threefold repetition")
+	end
+	return draw50
+end
