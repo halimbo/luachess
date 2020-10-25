@@ -224,12 +224,11 @@ function inCheck(pos,turn,freshmap,eptoken)
 	local kingPos = findKing(pos,turn)
 	for i,move in ipairs(oppAT) do
 		if move == kingPos then
-			print("check")
 			if check then
 				print("double check")
 				escape = kingM(pos,kingPos,oppAT)
 				if #escape==0 then
-					print("checkmate")
+					print("mate")
 					return true,false
 				else
 					for _,m in ipairs(escape) do
@@ -242,13 +241,15 @@ function inCheck(pos,turn,freshmap,eptoken)
 					return true, available
 				end
 			end
+			check = true
+			print("check")
 			local P = possible(pos,turn,freshmap,eptoken)
 			local kill
-			local blockable
-			local escape
+			local blocks
 			do8x8(P,function(pc,l,x,y)
 				if pc and not (abs(pc.id)==8) then
 					if contains(pc.moves, move.loc) then
+						kill = true
 						print(letters[l.x]..l.y,"can take on ", letters[move.loc.x]..move.loc.y)
 						if not available[l] then
 							available[l] = {}
@@ -256,31 +257,25 @@ function inCheck(pos,turn,freshmap,eptoken)
 							available[l].moves = {}
 						end
 						table.insert(available[l].moves,move.loc)
-						kill = true
 					end
 				end
 			end)
-			local block_check
-			if abs(move.id) == 1 or abs(move.id) == 2 then
-				block_check = false
-			else
-				block_check = true
-			end
-			if block_check then
-				local blocks = {}
+			if abs(move.id) > 2 then --not a pawn or knight
+				blocks = {}
 				local _r = i - 1 --going backwards on the atk-list
-				while _r>0 and oppAT[_r].dir == move.dir and oppAT[_r].id == move.id do
+				while _r>0 and oppAT[_r].dir == move.dir and oppAT[_r].loc == move.loc do
 					table.insert(blocks,oppAT[_r])
 					_r = _r - 1
 				end
 				if #blocks==0 then
-					blockable = false
+					blocks = false
 				else
+					local block_avail
 					do8x8(P,function(pc,l)
 						if pc and not ( abs(pc.id)==8 ) then
 							for _,b in ipairs(blocks) do
 								if contains(pc.moves, b) then
-									blockable = true
+									block_avail = true
 									print(letters[l.x]..l.y,"can block on ", letters[b.x]..b.y)
 									if not available[l] then
 										available[l] = {}
@@ -292,6 +287,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 							end
 						end
 					end)
+					if not block_avail then blocks = false end
 				end
 			end
 			escape = kingM(pos,kingPos,oppAT)
@@ -310,19 +306,13 @@ function inCheck(pos,turn,freshmap,eptoken)
 					table.insert(available[kingPos].moves, e)
 				end
 			end
-			if not (escape or blockable or kill) then
-				print("checkmate")
+			if not (escape or blocks or kill) then
+				print("mate")
 				return true,false
-			else
-				check = true
 			end
 		end
 	end
-	if check then
-		return true,available
-	else
-		return false
-	end
+	return check, available
 end
 local function compare(a,b)
 	local same = true
