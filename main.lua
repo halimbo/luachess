@@ -100,7 +100,7 @@ function love.mousepressed(x,y,key)
 				B:newFloat(click)
 			end
 		else
-			I:reset();B:setDiff("select",false)
+			I:reset()
 			local T = G:tryMove(sel,dest)
 			if T then
 				B:newTurn(T)
@@ -118,14 +118,12 @@ function love.mousereleased(x,y,key)
 		local sel, dest = I:mouseOff(here)
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if dest then
-			I:reset();B:setDiff("select",false)
+			I:reset()
 			local T = G:tryMove(sel,dest)
 			if T then
 				B:newTurn(T)
 			end
 		end 
 	end
-	if B.float then
-		B:unsetFloat()
-	end
+	B:unsetFloat()
 end

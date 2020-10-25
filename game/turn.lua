@@ -58,7 +58,7 @@ end
 Turn = {}
 function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 	local t = {}
-	local check,avail = isCheck(pos,turn,freshmap,eptoken)
+	local check,avail = inCheck(pos,turn,freshmap,eptoken)
 	if check and avail then
 		t.possible = avail
 	elseif check and not avail then

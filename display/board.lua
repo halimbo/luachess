@@ -3,7 +3,7 @@ require("display/piecemap")
 require("global")
 function Board(origin,size,pos)
 	local d = {}
-	d.defaults = {
+	d.settings = {
 		style = 1,
 		color = 3
 	}
@@ -85,8 +85,8 @@ function Board(origin,size,pos)
 	function d:drawBoard()
 		local map = self.canvasMap
 		local square = self.boardSize/8
-		local cW = self.colors[self.defaults.color].cW
-		local cB = self.colors[self.defaults.color].cB
+		local cW = self.colors[self.settings.color].cW
+		local cB = self.colors[self.settings.color].cB
 		white = true
 		local r,g,b = love.graphics.getColor()
 		for x=1,8 do
@@ -153,15 +153,15 @@ function Board(origin,size,pos)
 		end
 	end
 	function d:changeStyle()
-		local n = self.defaults.style +1
+		local n = self.settings.style +1
 		if n>#self.styles then n = 1 end
-		self.defaults.style = n
+		self.settings.style = n
 		self:loadpng()
 	end
 	function d:changeColor()
-		local n = self.defaults.color +1
+		local n = self.settings.color +1
 		if n>#self.colors then n = 1 end
-		self.defaults.color = n
+		self.settings.color = n
 		love.graphics.setCanvas(self.canvas)
 			love.graphics.setBlendMode("alpha")
 			self:drawBoard()
@@ -169,7 +169,7 @@ function Board(origin,size,pos)
 	end
 	function d:loadpng()
 		local function pngfile(color, piece)
-			return tostring("pieces/"..self.styles[self.defaults.style] .. "/" .. self.pngFolder .. "/" .. color .. piece .. ".png")
+			return tostring("pieces/"..self.styles[self.settings.style] .. "/" .. self.pngFolder .. "/" .. color .. piece .. ".png")
 		end
 		self.png = {}
 		self.png[1] = love.graphics.newImage(pngfile ("White", "Pawn") )
@@ -187,7 +187,7 @@ function Board(origin,size,pos)
 	end
 	function d:unsetFloat()
 		if not self.float then return end
-		self.pieces[self.float.x][self.float.y] =  self.pMap:unFloat(self.float)
+		self.pieces[self.float] =  self.pMap:unFloat(self.float)
 		self.float = false
 	end
 	function d:newFloat(l)
@@ -206,6 +206,7 @@ function Board(origin,size,pos)
 		self.pMap = PieceMap(T.pos)
 		if flip then self.pMap:flipBoard() end
 		self.pieces = self.pMap:get()
+		self.diff = {}
 		if T.lastMove then
 			self:setDiff("from",self.pMap:translate(T.lastMove[1]),C.black,0.4)
 			self:setDiff("to",self.pMap:translate(T.lastMove[2]),C.black,0.4)

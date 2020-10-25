@@ -6,15 +6,15 @@ directions[3] = {2,4,6,8}
 directions[4] = {1,3,5,7}
 directions[5] = {1,2,3,4,5,6,7,8}
 function findKing(pos,turn)
-	local king
+	local id
 	if hasTurn(8,turn) then
-		king = 8
+		id = 8
 	else
-		king = -8
+		id = -8
 	end
 	local kingPos
 	do8x8break(pos,function(s,l)
-		if s==king then
+		if s==id then
 			 kingPos = l
 			 return true
 		end
@@ -128,13 +128,13 @@ end
 --pinned pieces are able to move inside the pin 
 local function pinned(pos,pc,king)
 	local toKing = aligned(pc,king)
-	local kingID = pos[king]
 	if not toKing then
 		return false
 	elseif nextPiece(pos,pc,toKing) == king then
 		local away = reverse(toKing)
 		local otherSide = nextPiece(pos,pc,away)
 		if not otherSide then return false end
+		local kingID = pos[king]
 		if opponents(pos[otherSide],kingID) then
 			local enemy = abs(pos[otherSide])
 			if (enemy==3 or enemy==4 or enemy==5) and contains(directions[enemy],toKing) then
@@ -171,8 +171,7 @@ function possible(pos,turn,freshmap,eptoken)
 	if eptoken then
 		enpasMap = Map:new(0)
 		do8x8(pos,function(s,l) enpasMap[l] = s end)
-		enpasMap[eptoken] = eptoken.id
-		--invisible pawn 
+		enpasMap[eptoken] = eptoken.id 		--invisible pawn 
 	end
 	local p = Map:new(false)
 	scrollTurn(pos,turn,function(s,l,x,y)
@@ -205,7 +204,7 @@ function possible(pos,turn,freshmap,eptoken)
 			if qs and castles_safe(atk,qs) then
 				local n = #p[l].moves+1
 				p[l].moves[n] = loc:new(3,y)
-				p[l].moves[n].castles = {loc:new(1,y),qs[2]} --rook move
+				p[l].moves[n].castles = {loc:new(1,y),qs[2]}
 			end
 		end
 	end)
@@ -218,7 +217,7 @@ function possible(pos,turn,freshmap,eptoken)
 	end)
 	return p
 end
-function isCheck(pos,turn,freshmap,eptoken)
+function inCheck(pos,turn,freshmap,eptoken)
 	local check
 	local available = Map:new(false)
 	local oppAT = attackgen(pos,turn+1)
