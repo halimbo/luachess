@@ -104,6 +104,12 @@ function love.mousepressed(x,y,key)
 			local T = G:tryMove(sel,dest)
 			if T then
 				B:newTurn(T)
+			elseif G:isPiece(here) then
+				I:mouseOn(here,true)
+				B:setDiff("select",click,C.yellow,0.7)
+				if I:float() then
+					B:newFloat(click)
+				end
 			end
 		end
 	elseif key == 2 then
