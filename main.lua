@@ -59,7 +59,7 @@ function love.keypressed(key)
 	elseif key == "f" then
 		B:Flip()
 	elseif key == "left" then
-		I:reset();B:setDiff("select",false)
+		I:reset()
 		local T = G:takeback()
 		if T then
 			B:newTurn(T)
