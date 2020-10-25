@@ -29,19 +29,14 @@ function pawnM(pos,l,fresh)
 		forw = 1
 		take = {2,8}
 	end
-	if fresh then
-		local s = l:move(forw)
-		if s and pos[s]==0 then
-			table.insert(m,s)
-		end
-		local s2 = s:move(forw)
-		if s2 and pos[s2]==0 then
-			table.insert(m,s2)
-		end
-	else
-		local s = l:move(forw)
-		if s and (pos[s]==0) then
-			table.insert(m,s)
+	local s = l:move(forw)
+	if s and pos[s]==0 then
+		table.insert(m,s)
+		if fresh then
+			s = s:move(forw)
+			if s and pos[s]==0 then
+				table.insert(m,s)
+			end
 		end
 	end
 	for _,dir in pairs(take) do

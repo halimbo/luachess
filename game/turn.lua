@@ -66,8 +66,9 @@ function Turn:new(pos,turn,freshmap,eptoken,lastMove)
 		t.checkmate = findKing(pos,turn)
 	else
 		t.possible = possible(pos,turn,freshmap,eptoken)
+		print ("stalecheck")
 		local stalemate = true
-		do8x8break(t.possible,function (s,l) if s and #s.moves>0 then stalemate = false return true end end)
+		do8x8break(t.possible,function (s,l) if s and #s.moves>0 then print(l.x,l.y,#s.moves) stalemate = false return true end end)
 		if stalemate then
 			print("stalemate")
 			t.stalemate = findKing(pos,turn)
