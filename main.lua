@@ -1,14 +1,34 @@
 require("display/board")
+require("display/interface")
+require("display/colors")
 require("game/input")
 require("game/game")
 require("game/standard")
 require("global")
+
+-- Window
 local dim_x
 local dim_y
 local resize
+
+---- Chess
 local I
 local B
 local G
+local H = {}
+----- GUI
+local leftIsDown = 0
+local rightIsDown = 0
+local M
+local LOG = {} 
+local function cut_log(turn)
+	local n = #LOG
+	while n>=turn do
+		table.remove(LOG)
+		n=n-1
+	end
+end
+
 function love.draw()
 	if resize then love.graphics.clear(0,0,0) return end
 	love.graphics.setColor(1,1,1)
@@ -21,24 +41,28 @@ function love.draw()
 	if B.float then
 		B:drawFloat()
 	end
+	love.graphics.setBlendMode("alpha")
+	if M then
+		M:draw()
+	end
 end
 function love.load()
-	local origin = function(x,y)
-		if x<y then
-			return 0,math.floor(y/2-x/2+0.5)
-		else
-			return math.floor(x/2-y/2+0.5),0
-		end
+	font = love.graphics.newFont("Roboto-Regular.ttf",16)
+	fontHeight = font:getHeight()
+	rowWidth = math.floor(font:getWidth("66. Qxh8++")*2+0.5)
+	fontPaddingX = math.floor(font:getWidth("6")/2+0.5)
+	rowHeight = math.floor(fontHeight+fontHeight/4+0.5)
+	local x,y = love.graphics.getDimensions()
+	local f = love.window.getFullscreen()
+	if not f then dim_x,dim_y = x,y end
+	local bdim, ld = Layout(x,y,f)
+	if ld then
+		M = Movelist(ld)
 	end
-	local size = function(x,y)
-		return x<y and x or y
-	end
+	love.graphics.setFont(font)
 	G = Game(standard())
-	B = Board(origin,size,standard())
-	B:init(love.graphics.getDimensions())
-	if love.window.getFullscreen() then
-		dim_x, dim_y = 500,500
-	end
+	B = Board(standard())
+	B:init(bdim)
 	I = click_and_drag()
 end
 function love.update(dt)
@@ -46,11 +70,56 @@ function love.update(dt)
 		resize = resize + dt
 		if resize > 0.5 then
 			resize = false
-			B:init(love.graphics.getDimensions())
+			local x,y = love.graphics.getDimensions()
+			local f = love.window.getFullscreen()
+			local bdim,ld = Layout(x,y,f)
+			if ld then
+				M = Movelist(ld)
+				for _,s in ipairs(LOG) do
+					M:add(s)
+				end
+				M:scroll(G.current.turn-1)
+			else
+				M = false
+			end
+			B:init(bdim)
 		end
+	end
+	if love.keyboard.isDown("left") then
+		leftIsDown = leftIsDown + dt
+		if leftIsDown > 0.3 then
+			I:reset();B:setDiff("select",false)
+			if B.float then B:unsetFloat() end
+			local info = G:lookback()
+			if info then
+				B:newPos(info)
+				if M then
+					M:scroll(info.lastTurn)
+				end
+			end
+			leftIsDown = 0
+		end
+	elseif love.keyboard.isDown("right") then
+		rightIsDown = rightIsDown + dt
+		if rightIsDown > 0.3 then
+			I:reset();B:setDiff("select",false)
+			if B.float then B:unsetFloat() end
+			local info = G:lookforward()
+			if info then
+				B:newPos(info)
+				if M then
+					M:scroll(info.lastTurn)
+				end
+			end
+			rightIsDown = 0
+		end
+	else
+		rightIsDown = 0
+		leftIsDown = 0
 	end
 end
 function love.resize(x,y)
+	print("resize")
 	resize = 0
 end
 function love.keypressed(key)
@@ -59,10 +128,24 @@ function love.keypressed(key)
 	elseif key == "f" then
 		B:Flip()
 	elseif key == "left" then
-		I:reset()
-		local T = G:takeback()
-		if T then
-			B:newTurn(T)
+		I:reset();B:setDiff("select",false)
+		if B.float then B:unsetFloat() end
+		local info = G:lookback()
+		if info then
+			B:newPos(info)
+			if M then
+				M:scroll(info.lastTurn)
+			end
+		end
+	elseif key == "right" then
+		I:reset();B:setDiff("select",false)
+		if B.float then B:unsetFloat() end
+		local info = G:lookforward()
+		if info then
+			B:newPos(info)
+			if M then
+				M:scroll(info.lastTurn)
+			end
 		end
 	elseif key == "c" then
 		B:changeColor()
@@ -71,19 +154,20 @@ function love.keypressed(key)
 	elseif key == "v" then
 		local f = love.window.getFullscreen()
 		if f then
+			local dim_x,dim_y = dim_x or 400,dim_y or 500
 			love.window.setMode(dim_x,dim_y,
 				{fullscreen = not f,
 				resizable = true,
-				minwidth = 300,
-				minheight = 300})
+				minwidth = 500,
+				minheight = 400})
 		else
 			dim_x = love.graphics.getWidth()
 			dim_y = love.graphics.getHeight()
 			love.window.setMode(dim_x,dim_y,
 			{fullscreen = not f,
 			resizable = true,
-			minwidth = 300,
-			minheight = 300})
+			minwidth = 500,
+			minheight = 400})
 		end
 		resize = 0
 	end
@@ -91,7 +175,7 @@ end
 function love.mousepressed(x,y,key)
 	if key==1 then
 		local click, here = B:click(x,y)
-		if not click then return end
+		if not click then I:reset();B:setDiff("select",false) return end
 		local sel, dest = I:mouseOn(here,G:isPiece(here))
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if not dest then
@@ -100,16 +184,31 @@ function love.mousepressed(x,y,key)
 				B:newFloat(click)
 			end
 		else
-			I:reset()
-			local T = G:tryMove(sel,dest)
-			if T then
-				B:newTurn(T)
-			elseif G:isPiece(here) then
-				I:mouseOn(here,true)
+			I:reset();B:setDiff("select",false)
+			local info, h = G:tryMove(sel,dest)
+			if info then
+				B:newPos(info)
+				if h then
+					table.insert(H,h)
+					cut_log(h.split)
+					table.insert(LOG,info.str)
+					if M then
+						M:cut(h.split)
+						M:add(info.str)
+					end
+				else
+					table.insert(LOG,info.str)
+					if M then
+						M:add(info.str)
+					end
+				end
+			elseif I:mouseOn(here,G:isPiece(here)) then
 				B:setDiff("select",click,C.yellow,0.7)
 				if I:float() then
 					B:newFloat(click)
 				end
+			elseif B.float then
+				B:unsetFloat()
 			end
 		end
 	elseif key == 2 then
@@ -118,18 +217,35 @@ function love.mousepressed(x,y,key)
 	end
 end
 function love.mousereleased(x,y,key)
-	if key == 1 then
+	if key == 1 and B.float then
 		local click, here = B:click(x,y)
 		if not click then return end
 		local sel, dest = I:mouseOff(here)
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if dest then
-			I:reset()
-			local T = G:tryMove(sel,dest)
-			if T then
-				B:newTurn(T)
+			I:reset();B:setDiff("select",false)
+			local info,h = G:tryMove(sel,dest)
+			if info then
+				B:newPos(info)
+				if h then
+					table.insert(H,h)
+					cut_log(h.split)
+					table.insert(LOG,info.str)
+					if M then
+						M:cut(h.split)
+						M:add(info.str)
+					end
+				else
+					table.insert(LOG,info.str)
+					if M then
+						M:add(info.str)
+					end
+				end
 			end
-		end 
+		end
+		B:unsetFloat()
+	elseif key == 2 and B.float then
+		B:unsetFloat()
 	end
 	B:unsetFloat()
 end

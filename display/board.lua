@@ -1,7 +1,7 @@
 require("display/graphics")
 require("display/piecemap")
 require("global")
-function Board(origin,size,pos)
+function Board(pos)
 	local d = {}
 	d.settings = {
 		style = 1,
@@ -19,8 +19,6 @@ function Board(origin,size,pos)
 			cB = C.style3B
 		}
 	}
-	d.origin = origin
-	d.size = size
 	d.diff = {}
 	d.pMap = PieceMap(pos)
 	d.pieces = d.pMap:get()
@@ -39,11 +37,11 @@ function Board(origin,size,pos)
 		love.graphics.rectangle( "fill", map[h].x,map[h].y, square, square)
 		love.graphics.setColor(r,g,b)
 	end
-	function d:init(x,y)
-		local bX, bY = self.origin(x,y)
-		local boardSize = self.size(x,y)
-		self.boardSize = boardSize
-		self.bX,self.bY = bX,bY
+	function d:init(t)
+		local boardSize = t.size
+		local bX,bY = t.ox,t.oy
+		self.boardSize = t.size
+		self.bX,self.bY = t.ox,t.oy
 		local pngSize, pngFolder
 		if boardSize <= 525 then
 			pngSize = 80
@@ -53,7 +51,7 @@ function Board(origin,size,pos)
 			pngFolder = "150"
 		end
 		local square = boardSize/8
-		self.scale = 1/(pngSize/(square*0.96)) --tweaking scale *0.96
+		self.scale = 1/(pngSize/(square*0.96)) --scale *0.96
 		self.inputMap = InputMap(square,bX,bY)
 		self.pngMap = PngMap(square,bX,bY,pngSize,self.scale)
 		self.boardMap = BoardMap(square,bX,bY)
@@ -88,7 +86,6 @@ function Board(origin,size,pos)
 		local cW = self.colors[self.settings.color].cW
 		local cB = self.colors[self.settings.color].cB
 		white = true
-		local r,g,b = love.graphics.getColor()
 		for x=1,8 do
 			for y=1,8 do
 				if white then
@@ -101,12 +98,10 @@ function Board(origin,size,pos)
 			end
 			white = not white
 		end
-		love.graphics.setColor(r,g,b)
 	end
 	function d:drawPieces()
 		local pos = self.pieces
 		local map = self.pngMap
-		local r,g,b = love.graphics.getColor()
 		love.graphics.setColor (1,1,1)
 		for x=1,8 do
 			for y=1,8 do
@@ -121,10 +116,8 @@ function Board(origin,size,pos)
 				end
 			end
 		end
-		love.graphics.setColor(r,g,b)
 	end
 	function d:drawFloat()
-		local r,g,b = love.graphics.getColor()
 		love.graphics.setColor (1,1,1)
 		local x,y = love.mouse.getPosition()
 		local fX = x-self.pngSize/2*self.scale
@@ -136,7 +129,6 @@ function Board(origin,size,pos)
 			0,
 			self.scale,
 			self.scale)
-		love.graphics.setColor(r,g,b)
 	end
 	function d:Flip()
 		local function flipXY(s)
@@ -191,6 +183,7 @@ function Board(origin,size,pos)
 		self.float = false
 	end
 	function d:newFloat(l)
+		if self.float then self:unsetFloat() end
 		self.float = self.pMap:float(l)
 		self.pieces[l]=0
 	end
@@ -201,23 +194,18 @@ function Board(origin,size,pos)
 		local board =  self.pMap:translate(click)
 		return click,board
 	end
-	function d:newTurn(T)
+	function d:newPos(i)
 		local flip = self.pMap:rotation()
-		self.pMap = PieceMap(T.pos)
+		self.pMap = PieceMap(i.pos)
 		if flip then self.pMap:flipBoard() end
 		self.pieces = self.pMap:get()
 		self.diff = {}
-		if T.lastMove then
-			self:setDiff("from",self.pMap:translate(T.lastMove[1]),C.black,0.4)
-			self:setDiff("to",self.pMap:translate(T.lastMove[2]),C.black,0.4)
-		else
-			self:setDiff("from",false)
-			self:setDiff("to",false)
+		if i.highlight then
+			self:setDiff("from",self.pMap:translate(i.highlight[1]),C.black,0.4)
+			self:setDiff("to",self.pMap:translate(i.highlight[2]),C.black,0.4)
 		end
-		if T.checkmate then
-			self:setDiff("CM",self.pMap:translate(T.checkmate),C.red,0.4)
-		elseif T.stalemate then
-			self:setDiff("SM",self.pMap:translate(T.stalemate),C.blue,0.4)
+		if i.checkmate or i.draw then
+			self:setDiff("king",self.pMap:translate(i.kingToMove),C.red,0.4)
 		end
 	end
 	return d
