@@ -16,6 +16,7 @@ local I
 local B
 local G
 local H = {}
+
 ----- GUI
 local leftIsDown = 0
 local rightIsDown = 0
@@ -47,10 +48,10 @@ function love.draw()
 	end
 end
 function love.load()
-	font = love.graphics.newFont("Roboto-Regular.ttf",16)
-	fontHeight = font:getHeight()
-	rowWidth = math.floor(font:getWidth("66. Qxh8++")*2+0.5)
+	font = love.graphics.newFont("display/Roboto-Regular.ttf",19)
 	fontPaddingX = math.floor(font:getWidth("6")/2+0.5)
+	rowWidth = math.floor(font:getWidth("66. Qxh8++")*2+0.5) + fontPaddingX
+	fontHeight = font:getHeight()
 	rowHeight = math.floor(fontHeight+fontHeight/4+0.5)
 	local x,y = love.graphics.getDimensions()
 	local f = love.window.getFullscreen()
@@ -75,8 +76,8 @@ function love.update(dt)
 			local bdim,ld = Layout(x,y,f)
 			if ld then
 				M = Movelist(ld)
-				for _,s in ipairs(LOG) do
-					M:add(s)
+				for i,s in ipairs(LOG) do
+					M:add(s,i+1) --button No°1 --> Position No°2
 				end
 				M:scroll(G.current.turn-1)
 			else
@@ -87,7 +88,7 @@ function love.update(dt)
 	end
 	if love.keyboard.isDown("left") then
 		leftIsDown = leftIsDown + dt
-		if leftIsDown > 0.3 then
+		if leftIsDown > 0.1 then
 			I:reset();B:setDiff("select",false)
 			if B.float then B:unsetFloat() end
 			local info = G:lookback()
@@ -101,7 +102,7 @@ function love.update(dt)
 		end
 	elseif love.keyboard.isDown("right") then
 		rightIsDown = rightIsDown + dt
-		if rightIsDown > 0.3 then
+		if rightIsDown > 0.1 then
 			I:reset();B:setDiff("select",false)
 			if B.float then B:unsetFloat() end
 			local info = G:lookforward()
@@ -119,7 +120,6 @@ function love.update(dt)
 	end
 end
 function love.resize(x,y)
-	print("resize")
 	resize = 0
 end
 function love.keypressed(key)
@@ -137,6 +137,7 @@ function love.keypressed(key)
 				M:scroll(info.lastTurn)
 			end
 		end
+		leftIsDown = -0.3
 	elseif key == "right" then
 		I:reset();B:setDiff("select",false)
 		if B.float then B:unsetFloat() end
@@ -147,6 +148,7 @@ function love.keypressed(key)
 				M:scroll(info.lastTurn)
 			end
 		end
+		rightIsDown = -0.3
 	elseif key == "c" then
 		B:changeColor()
 	elseif key == "s" then
@@ -175,7 +177,16 @@ end
 function love.mousepressed(x,y,key)
 	if key==1 then
 		local click, here = B:click(x,y)
-		if not click then I:reset();B:setDiff("select",false) return end
+		if not click then
+			I:reset()
+			B:setDiff("select",false)
+			local turn = M:click(x,y)
+			if turn then
+				local info = G:jumpto(turn)
+				B:newPos(info)
+			end
+			return
+		end
 		local sel, dest = I:mouseOn(here,G:isPiece(here))
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if not dest then
@@ -194,12 +205,12 @@ function love.mousepressed(x,y,key)
 					table.insert(LOG,info.str)
 					if M then
 						M:cut(h.split)
-						M:add(info.str)
+						M:add(info.str,info.turn)
 					end
 				else
 					table.insert(LOG,info.str)
 					if M then
-						M:add(info.str)
+						M:add(info.str,info.turn)
 					end
 				end
 			elseif I:mouseOn(here,G:isPiece(here)) then
@@ -233,12 +244,12 @@ function love.mousereleased(x,y,key)
 					table.insert(LOG,info.str)
 					if M then
 						M:cut(h.split)
-						M:add(info.str)
+						M:add(info.str,info.turn)
 					end
 				else
 					table.insert(LOG,info.str)
 					if M then
-						M:add(info.str)
+						M:add(info.str,info.turn)
 					end
 				end
 			end

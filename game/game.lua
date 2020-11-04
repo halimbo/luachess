@@ -17,19 +17,34 @@ function Game(pos)
 		if self.current.turn < 2 then return false end
 		local T = self.timeline[self.current.turn-1]
 		self.current = T
-		return { pos = T.pos, highlight = T.change, lastTurn = T.turn-1 }
+		return { pos = T.pos, 
+				highlight = T.change,
+				lastTurn = T.turn-1,
+				checkmate = T.checkmate,
+				draw = T.draw,
+				kingToMove = T.kingPos }
 	end
 	function g:lookforward()
 		if self.current.turn == #self.timeline then return false end
 		local T = self.timeline[self.current.turn+1]
 		self.current = T
-		return { pos = T.pos, highlight = T.change, lastTurn = T.turn-1 }
+		return { pos = T.pos, 
+				highlight = T.change,
+				lastTurn = T.turn-1,
+				checkmate = T.checkmate,
+				draw = T.draw,
+				kingToMove = T.kingPos }
 	end
 	function g:jumpto(turn)
 		if turn<1 or turn>#self.timeline then return false end
 		local T = self.timeline[turn]
 		self.current = T
-		return { pos = T.pos, highlight = T.change, lastTurn = T.turn-1 }
+		return { pos = T.pos,
+			highlight = T.change,
+			lastTurn = T.turn-1, 
+			checkmate = T.checkmate, 
+			draw = T.draw, 
+			kingToMove = T.kingPos}
 	end
 	function g:save()
 		local h = {}
@@ -82,6 +97,7 @@ function Game(pos)
 	function g:export(T)
 		local i = {}
 		local turn = T.turn
+		i.turn = turn
 		local h
 		local n = #self.timeline
 		if turn<=n then
@@ -113,12 +129,11 @@ function Game(pos)
 		i.pos = T.pos
 		i.highlight = T.change
 		table.insert(self.timeline,T)
-		print("New #Timeline:",#self.timeline)
-
 		if not T.checkmate and
 		( T.stalemate or T.drawCount>=100
 		or drawRepetition(self.timeline) )then
 			i.draw = true
+			T.draw = true
 		end
 		self.current = T
 		return i, h

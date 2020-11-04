@@ -1,7 +1,7 @@
---global variables (font*,row*)
+--global variables [ fontPaddingX,fontHeight,rowWidth,rowHeight ]
 function Layout(x,y,f,zen)
-	local ROWS = 1
-	local LINES = 3
+	local rows = 1
+	local lines = 3
 	local b = {}
 	local mlist = {}
 	local horizontal = x>y and true or false
@@ -12,7 +12,7 @@ function Layout(x,y,f,zen)
 		mlist.oy = 0
 		mlist.w = x-y
 		mlist.h = y
-		if zen or (mlist.w<rowWidth*ROWS or mlist.h<rowHeight*LINES) then
+		if zen or (mlist.w<rowWidth*rows or mlist.h<rowHeight*lines) then
 			b.ox,b.oy = math.floor(x/2-y/2+0.5),0
 			mlist = false
 		else
@@ -25,7 +25,7 @@ function Layout(x,y,f,zen)
 		mlist.oy = x
 		mlist.w = x
 		mlist.h = y-x
-		if zen or (mlist.w<rowWidth*ROWS or mlist.h<rowHeight*LINES) then
+		if zen or (mlist.w<rowWidth*rows or mlist.h<rowHeight*lines) then
 			b.ox,b.oy = 0,math.floor(y/2-x/2+0.5)
 			mlist = false
 		else
@@ -37,7 +37,7 @@ function Layout(x,y,f,zen)
 		if zen then
 			mlist = false
 		else
-		-- tbc
+		-- tbc if no space for mlist
 			mlist.ox = b.ox+b.size
 			mlist.oy = 0
 			mlist.w = x-y
@@ -50,7 +50,7 @@ function Layout(x,y,f,zen)
 		if zen then
 			mlist = false
 		else
-		-- tbc
+		-- tbc siehe oben
 			mlist.ox = 0
 			mlist.oy = b.oy+b.size
 			mlist.w = x
@@ -77,6 +77,15 @@ local function MoveButton(x,y,w,h,color,str,turn)
 		love.graphics.rectangle("fill",self.x,self.y,self.w,self.h)
 		love.graphics.setColor(1,1,1)
 		love.graphics.print(self.str,self.fX,self.fY)
+	end
+	function m:click(x,y)
+		if x>self.x
+		and x<self.x+self.w
+		and y>self.y
+		and y<self.y+self.h then
+			return self.turn
+		end
+		return false
 	end
 	function m:dump()
 		return self.str
@@ -207,42 +216,44 @@ function Movelist(t)
 		self.cursor = button
 		self.sum=self.sum+1
 	end
+	function mlist:click(x,y)
+		if not self.show then return false end
+		for _,row in ipairs(self.pages[self.show].rows) do
+			for _,button in ipairs(row.moves) do
+				local turn = button:click(x,y)
+				if turn then
+					if self.cursor then
+						self.cursor.color = C.black
+					end
+					button.color = C.grey
+					self.cursor = button
+					return turn
+				end
+			end
+		end
+		return false
+	end
 	function mlist:scroll(n)
-		if #self.pages==0 then print("no pages but cursor?") return false end
+		if #self.pages==0 then return end
 		if self.cursor then
 			self.cursor.color = C.black
-			if n==0 then self.cursor= false return end
+			if n==0 then self.show = 1; self.cursor = false return end
 		end
-		local row
 		local button
-		local page
-		if #self.pages==1 then
-			row  = math.floor(n/2+0.5)
-			button = n%2==1 and 1 or 2
-			self.cursor = self.pages[1].rows[row].moves[button]
-			self.cursor.color = C.grey
-		elseif #self.pages>1 then
-			local pageCount = #self.pages[1].rows
-			local fullPages = math.floor(n/(pageCount*2))
-			if fullPages>0 then
-				row = math.floor(n%(pageCount*(fullPages))/2+0.5)
-			else
-				row = math.floor(n/2+0.5)
+		local i = 0
+		for pageN,p in ipairs(self.pages) do
+			for __,r in ipairs(p.rows) do
+				for ___,b in ipairs(r.moves) do
+					i=i+1
+					if i==n then
+						button = b
+						self.show = pageN
+					end
+				end
 			end
-			if row==0 then 
-				page = fullPages
-				row = pageCount
-			else
-				page = fullPages + 1
-			end
-			button = n%2==1 and 1 or 2
-			print("page",page)
-			print("row",row)
-			print("button",button)
-			self.cursor = self.pages[page].rows[row].moves[button]
-			self.cursor.color = C.grey
-			self.show = page
 		end
+		button.color = C.grey
+		self.cursor = button
 	end
 	function mlist:draw()
 		if self.show then
@@ -251,24 +262,26 @@ function Movelist(t)
 	end
 	function mlist:cut(turn)
 		local i = self.sum
+		local empty
 		while i>=turn do
-			self:delete()
+			empty = self:delete()
 			i=i-1
 		end
+		if empty then self.show = false
+		else self.show = #self.pages end --not necessary
 	end
 	function mlist:delete()
-		if self.sum==0 then print("is already empty") return false end
+		if self.sum==0 then return end
 		local empty = self.pages[#self.pages]:delete()
+		self.sum = self.sum - 1
 		if empty then
 			table.remove(self.pages)
 			if #self.pages==0 then
-				self.sum = self.sum - 1
-				self.show= false
-				return
+				print("emptied")
+				return true
 			end
 		end
-		self.show = #self.pages
-		self.sum = self.sum - 1
+		return false
 	end
 	return mlist
 end
