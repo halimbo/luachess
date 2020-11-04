@@ -199,10 +199,10 @@ function love.mousepressed(x,y,key)
 			end
 		else
 			I:reset();B:setDiff("select",false)
-			local info, h = G:tryMove(sel,dest)
+			local info, h, seen = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if type(h)=="table" then
+				if h then
 					table.insert(H,h)
 					cut_log(h.split)
 					table.insert(LOG,info.str)
@@ -210,7 +210,7 @@ function love.mousepressed(x,y,key)
 						M:cut(h.split)
 						M:add(info.lastMove,info.str,info.turn)
 					end
-				elseif h then
+				elseif seen then
 					M:scroll(info.lastTurn)
 				else
 					table.insert(LOG,info.str)
@@ -240,10 +240,10 @@ function love.mousereleased(x,y,key)
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if dest then
 			I:reset();B:setDiff("select",false)
-			local info,h = G:tryMove(sel,dest)
+			local info,h,seen = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if type(h)=="table" then
+				if h then
 					table.insert(H,h)
 					cut_log(h.split)
 					table.insert(LOG,info.str)
@@ -251,7 +251,7 @@ function love.mousereleased(x,y,key)
 						M:cut(h.split)
 						M:add(info.lastMove,info.str,info.turn)
 					end
-				elseif h then
+				elseif seen then
 					M:scroll(info.lastTurn)
 				else
 					table.insert(LOG,info.str)

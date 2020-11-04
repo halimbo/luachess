@@ -25,6 +25,7 @@ function Game(pos)
 				kingToMove = T.kingPos }
 	end
 	function g:lookforward()
+		print("NTimeline",#self.timeline)
 		if self.current.turn == #self.timeline then return false end
 		local T = self.timeline[self.current.turn+1]
 		self.current = T
@@ -99,9 +100,10 @@ function Game(pos)
 		local turn = T.turn
 		i.turn = turn
 		local h
+		local seen
 		local n = #self.timeline
 		if turn<=n and compare(T.pos,self.timeline[turn].pos) then
-			h = true
+			seen = true
 		elseif turn<=n then
 			h = self:save()
 			h.split = self.current.turn
@@ -137,15 +139,19 @@ function Game(pos)
 		end
 		i.pos = T.pos
 		i.highlight = T.change
-		table.insert(self.timeline,T)
-		if not T.checkmate and
-		( T.stalemate or T.drawCount>=100
-		or drawRepetition(self.timeline) )then
+		if not seen then
+			table.insert(self.timeline,T)
+			if not T.checkmate and
+			( T.stalemate or T.drawCount>=100
+			or drawRepetition(self.timeline) )then
+				i.draw = true
+				T.draw = true
+			end
+		elseif T.draw then
 			i.draw = true
-			T.draw = true
 		end
 		self.current = T
-		return i, h
+		return i, h, seen
 	end
 	return g
 end
