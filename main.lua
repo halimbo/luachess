@@ -50,7 +50,8 @@ end
 function love.load()
 	font = love.graphics.newFont("display/Roboto-Regular.ttf",19)
 	fontPaddingX = math.floor(font:getWidth("6")/2+0.5)
-	rowWidth = math.floor(font:getWidth("66. Qxh8++")*2+0.5) + fontPaddingX
+	rowMoveWidth = math.floor(font:getWidth("6.")+0.5) + fontPaddingX*2
+	rowWidth = rowMoveWidth + math.floor(font:getWidth("Qxh6##+")*2+0.5) + fontPaddingX
 	fontHeight = font:getHeight()
 	rowHeight = math.floor(fontHeight+fontHeight/4+0.5)
 	local x,y = love.graphics.getDimensions()
@@ -76,8 +77,10 @@ function love.update(dt)
 			local bdim,ld = Layout(x,y,f)
 			if ld then
 				M = Movelist(ld)
+				local move = 1
 				for i,s in ipairs(LOG) do
-					M:add(s,i+1) --button No°1 --> Position No°2
+					M:add(math.floor(move),s,i+1) --button No°1 --> Position No°2
+					move = move + 0.5
 				end
 				M:scroll(G.current.turn-1)
 			else
@@ -199,18 +202,20 @@ function love.mousepressed(x,y,key)
 			local info, h = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if h then
+				if type(h)=="table" then
 					table.insert(H,h)
 					cut_log(h.split)
 					table.insert(LOG,info.str)
 					if M then
 						M:cut(h.split)
-						M:add(info.str,info.turn)
+						M:add(info.lastMove,info.str,info.turn)
 					end
+				elseif h then
+					M:scroll(info.lastTurn)
 				else
 					table.insert(LOG,info.str)
 					if M then
-						M:add(info.str,info.turn)
+						M:add(info.lastMove,info.str,info.turn)
 					end
 				end
 			elseif I:mouseOn(here,G:isPiece(here)) then
@@ -238,18 +243,20 @@ function love.mousereleased(x,y,key)
 			local info,h = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if h then
+				if type(h)=="table" then
 					table.insert(H,h)
 					cut_log(h.split)
 					table.insert(LOG,info.str)
 					if M then
 						M:cut(h.split)
-						M:add(info.str,info.turn)
+						M:add(info.lastMove,info.str,info.turn)
 					end
+				elseif h then
+					M:scroll(info.lastTurn)
 				else
 					table.insert(LOG,info.str)
 					if M then
-						M:add(info.str,info.turn)
+						M:add(info.lastMove,info.str,info.turn)
 					end
 				end
 			end

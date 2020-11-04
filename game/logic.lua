@@ -236,7 +236,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 				escape = kingM(pos,kingPos,oppAT)
 				if #escape==0 then
 					print("mate")
-					return true,false
+					return true,false,true
 				else
 					for _,m in ipairs(escape) do
 						print("escape to "..letters[m.x]..m.y)
@@ -245,7 +245,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 					available[kingPos] = {}
 					available[kingPos].id = pos[kingPos]
 					available[kingPos].moves = escape
-					return true, available
+					return true, available, true
 				end
 			end
 			check = true
@@ -321,7 +321,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 	end
 	return check, available
 end
-local function compare(a,b)
+function compare(a,b)
 	local same = true
 	do8x8break(a, function (s,l) if not (s==b[l]) then same = false return true end end)
 	return same

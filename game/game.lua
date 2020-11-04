@@ -100,7 +100,9 @@ function Game(pos)
 		i.turn = turn
 		local h
 		local n = #self.timeline
-		if turn<=n then
+		if turn<=n and compare(T.pos,self.timeline[turn].pos) then
+			h = true
+		elseif turn<=n then
 			h = self:save()
 			h.split = self.current.turn
 			local cut = self.current.turn + 1
@@ -109,22 +111,29 @@ function Game(pos)
 				cut = cut + 1
 			end
 		end
-		local lastTurn = self.current.turn
-		local lastMove = self.current.move
+		i.lastMove = self.current.move
+		i.lastTurn = self.current.turn
 		i.kingToMove = T.kingPos
 		if turn%2==1 then
 			i.toMove = "White"
 		else
 			i.toMove = "Black"
 		end
-		if lastTurn%2==1 then i.str = lastMove..". "..T.lastAlg
-		else i.str = T.lastAlg end
+		i.str = T.lastAlg
+		local suffix
 		if T.inCheck then
-			i.str = i.str.."+"
 			i.inCheck = true
+			if T.doubleCheck then
+				suffix = "++"
+			else
+				suffix = "+"
+			end
 		elseif T.checkmate then
 			i.checkmate = true
-			i.str = i.str.."#"
+			suffix = "#"
+		end
+		if suffix then
+			i.str = i.str..suffix
 		end
 		i.pos = T.pos
 		i.highlight = T.change

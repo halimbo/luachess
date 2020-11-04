@@ -5,7 +5,7 @@ function Board(pos)
 	local d = {}
 	d.settings = {
 		style = 1,
-		color = 3
+		color = 2
 	}
 	d.styles = {"merida","alpha","leipzig"}
 	d.colors = {
@@ -17,6 +17,9 @@ function Board(pos)
 		},
 		{	cW = C.style3W,
 			cB = C.style3B
+		},
+		{	cW = C.style3W,
+			cB = C.lightblue
 		}
 	}
 	d.diff = {}

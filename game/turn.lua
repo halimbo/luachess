@@ -68,13 +68,15 @@ end
 Turn = {}
 function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
 	local t = {}
-	local check,avail = inCheck(pos,turn,freshmap,eptoken)
+	local check,avail,double = inCheck(pos,turn,freshmap,eptoken)
 	if check and avail then
 		t.possible = avail
 		t.inCheck = true
+		t.doubleCheck = double
 	elseif check and not avail then
 		t.possible = Map:new(false)
 		t.checkmate = true
+		t.doubleCheck = double
 	else
 		t.possible = possible(pos,turn,freshmap,eptoken)
 		local stalemate = true

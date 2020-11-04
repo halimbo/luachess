@@ -1,4 +1,4 @@
---global variables [ fontPaddingX,fontHeight,rowWidth,rowHeight ]
+--global variables [ fontPaddingX,fontHeight,rowMoveWidth,rowWidth,rowHeight ]
 function Layout(x,y,f,zen)
 	local rows = 1
 	local lines = 3
@@ -78,11 +78,37 @@ local function MoveButton(x,y,w,h,color,str,turn)
 		love.graphics.setColor(1,1,1)
 		love.graphics.print(self.str,self.fX,self.fY)
 	end
-	function m:click(x,y)
+	function m:click(x)
 		if x>self.x
-		and x<self.x+self.w
-		and y>self.y
-		and y<self.y+self.h then
+		and x<self.x+self.w then
+			return self.turn
+		end
+		return false
+	end
+	function m:dump()
+		return self.str
+	end
+	return m
+end
+local function MoveNrButton(x,y,w,h,color,move,turn)
+	m = {}
+	m.x = x
+	m.y = y
+	m.w = w
+	m.h = h
+	m.color = color
+	m.str = move
+	m.turn = turn
+	m.fY = math.floor(y+h/2-fontHeight/2)
+	function m:draw()
+		love.graphics.setColor(self.color.r,self.color.g,self.color.b,0.5)
+		love.graphics.rectangle("fill",self.x,self.y,self.w,self.h)
+		love.graphics.setColor(1,1,1)
+		love.graphics.printf(self.str,self.x,self.fY,self.w,"center")
+	end
+	function m:click(x)
+		if x>self.x
+		and x<self.x+self.w then
 			return self.turn
 		end
 		return false
@@ -94,27 +120,24 @@ local function MoveButton(x,y,w,h,color,str,turn)
 end
 local function Row(x,y,w,h)
 	local r = {}
-	r.moves = {}
+	r.buttons = {}
 	r.x = x
 	r.y = y
 	r.w = w
 	r.h = h
-	function r:add(str,turn)
-		if #self.moves == 0 then
-			local button = MoveButton(
+	function r:add(move,str,turn)
+		if #self.buttons == 0 then
+			self.moveNr = MoveNrButton(
 				self.x,
 				self.y,
-				self.w/2,
+				rowMoveWidth,
 				self.h,
-				C.black,
-				str,
+				C.lightblue,
+				move,
 				turn
 			)
-			table.insert(self.moves,button)
-			return button
-		elseif #self.moves == 1 then
 			local button = MoveButton(
-				self.x+self.w/2,
+				self.x+rowMoveWidth,
 				self.y,
 				self.w/2,
 				self.h,
@@ -122,18 +145,42 @@ local function Row(x,y,w,h)
 				str,
 				turn
 			)
-			table.insert(self.moves,button)
+			table.insert(self.buttons,button)
+			return button
+		elseif #self.buttons == 1 then
+			local button = MoveButton(
+				self.x+rowMoveWidth+self.w/2,
+				self.y,
+				self.w/2,
+				self.h,
+				C.black,
+				str,
+				turn
+			)
+			table.insert(self.buttons,button)
 			return button
 		else
 			return false
 		end
 	end
 	function r:delete()
-		table.remove(self.moves)
-		if #self.moves==0 then return true else return false end
+		table.remove(self.buttons)
+		if #self.buttons==0 then return true else return false end
+	end
+	function r:click(x,y)
+		if y<self.y or y>self.y+self.h then return false end
+		local turn = self.moveNr:click(x)
+		if turn then return self.buttons[1],turn end
+		for _,button in ipairs(self.buttons) do
+			turn = button:click(x)
+			if turn then return button,turn end
+		end
+		return false
 	end
 	function r:draw()
-		for _,m in ipairs(self.moves) do
+		if not self.moveNr then debug.debug() end
+		self.moveNr:draw()
+		for _,m in ipairs(self.buttons) do
 			m:draw()
 		end
 	end
@@ -148,11 +195,11 @@ local function Page(x,y,w,h)
 	p.startY = y
 	p.startX = x
 	p.rows = {}
-	function p:add(str,turn)
+	function p:add(move,str,turn)
 		if #self.rows==0 then
 			table.insert(p.rows,Row(x,y,rowWidth,rowHeight))
 		end
-		local button = self.rows[#self.rows]:add(str,turn)
+		local button = self.rows[#self.rows]:add(move,str,turn)
 		if button then return button end
 		if (self.y+rowHeight*2) > self.startY+self.h then
 			self.lastPossibleY = self.y
@@ -162,12 +209,12 @@ local function Page(x,y,w,h)
 			self.x = self.x + rowWidth
 			self.y = self.startY
 			table.insert(p.rows,Row(self.x,self.y,rowWidth,rowHeight))
-			button = self.rows[#self.rows]:add(str,turn)
+			button = self.rows[#self.rows]:add(move,str,turn)
 			return button
 		end
 		self.y = self.y+rowHeight
 		table.insert(p.rows,Row(self.x,self.y,rowWidth,rowHeight))
-		button = self.rows[#self.rows]:add(str,turn)
+		button = self.rows[#self.rows]:add(move,str,turn)
 		return button
 	end
 	function p:delete()
@@ -198,16 +245,16 @@ function Movelist(t)
 	local mlist = {}
 	mlist.pages = {}
 	mlist.sum = 0
-	function mlist:add(str,turn)
+	function mlist:add(move,str,turn)
 		if #self.pages==0 then
 			table.insert(mlist.pages,Page(t.ox,t.oy,t.w,t.h))
 			self.show = #self.pages
 		end
-		local button = self.pages[#self.pages]:add(str,turn)
+		local button = self.pages[#self.pages]:add(move,str,turn)
 		if not button then
 			table.insert(self.pages,Page(t.ox,t.oy,t.w,t.h))
 			self.show = #self.pages
-			button = self.pages[self.show]:add(str,turn)
+			button = self.pages[self.show]:add(move,str,turn)
 		end
 		if self.cursor then
 			self.cursor.color = C.black
@@ -219,8 +266,7 @@ function Movelist(t)
 	function mlist:click(x,y)
 		if not self.show then return false end
 		for _,row in ipairs(self.pages[self.show].rows) do
-			for _,button in ipairs(row.moves) do
-				local turn = button:click(x,y)
+				local button,turn = row:click(x,y)
 				if turn then
 					if self.cursor then
 						self.cursor.color = C.black
@@ -229,7 +275,6 @@ function Movelist(t)
 					self.cursor = button
 					return turn
 				end
-			end
 		end
 		return false
 	end
@@ -243,7 +288,7 @@ function Movelist(t)
 		local i = 0
 		for pageN,p in ipairs(self.pages) do
 			for __,r in ipairs(p.rows) do
-				for ___,b in ipairs(r.moves) do
+				for ___,b in ipairs(r.buttons) do
 					i=i+1
 					if i==n then
 						button = b
