@@ -233,7 +233,9 @@ function love.mousepressed(x,y,key)
 	end
 end
 function love.mousereleased(x,y,key)
-	if key == 1 and B.float then
+	if not B.float then return end
+	if key == 1 then
+		B:unsetFloat()
 		local click, here = B:click(x,y)
 		if not click then return end
 		local sel, dest = I:mouseOff(here)
@@ -261,9 +263,5 @@ function love.mousereleased(x,y,key)
 				end
 			end
 		end
-		B:unsetFloat()
-	elseif key == 2 and B.float then
-		B:unsetFloat()
 	end
-	B:unsetFloat()
 end

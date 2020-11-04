@@ -207,8 +207,10 @@ function Board(pos)
 			self:setDiff("from",self.pMap:translate(i.highlight[1]),C.black,0.4)
 			self:setDiff("to",self.pMap:translate(i.highlight[2]),C.black,0.4)
 		end
-		if i.checkmate or i.draw then
+		if i.checkmate then
 			self:setDiff("king",self.pMap:translate(i.kingToMove),C.red,0.4)
+		elseif i.draw then
+			self:setDiff("king",self.pMap:translate(i.kingToMove),C.brown,0.4)
 		end
 	end
 	return d
