@@ -37,7 +37,7 @@ local function castles(pos,l,s,rook0,rook)
 	map[l] = 0
 	map[rook] = map[rook0]
 	map[rook0] = 0
-	return map, algebraic(pos,l,s,nil,rook0)
+	return map, algebraic(pos,l,s,nil,rook0.x)
 end
 local function enpas(pos,l,s,e)
 	local map = Map:copy(pos)
