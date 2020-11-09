@@ -140,11 +140,9 @@ function do8x8break(pos,f)
 	for x=1,8 do
 		for y=1,8 do
 			if f(pos[x][y],loc:new(x,y),x,y) then
-				b = true
-				break
+				return
 			end
 		end
-		if b then break end
 	end
 end
 function abs(x)
