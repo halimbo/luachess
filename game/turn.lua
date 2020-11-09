@@ -80,7 +80,7 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
 	else
 		t.possible = possible(pos,turn,freshmap,eptoken)
 		local stalemate = true
-		do8x8break(t.possible,function (s,l) if s and #s.moves>0 then stalemate = false return true end end)
+		do8x8break(t.possible,function (s) if s and #s.moves>0 then stalemate = false return true end end)
 		t.stalemate = stalemate
 	end
 	t.pos = pos
