@@ -89,13 +89,13 @@ function Game(pos)
 		end
 	end
 	function g:tryMove(l,s)
-		local T = self.current:make_move(l,s)
+		local T,alg = self.current:make_move(l,s)
 		if T then
-			return self:export(T)
+			return self:export(T,alg)
 		end
 		return false 
 	end
-	function g:export(T)
+	function g:export(T,alg)
 		local i = {}
 		local turn = T.turn
 		i.turn = turn
@@ -121,7 +121,7 @@ function Game(pos)
 		else
 			i.toMove = "Black"
 		end
-		i.str = T.lastAlg
+		i.str = alg
 		local suffix
 		if T.inCheck then
 			i.inCheck = true

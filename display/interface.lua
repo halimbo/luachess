@@ -316,13 +316,12 @@ function Movelist(t)
 		else self.show = #self.pages end --not necessary
 	end
 	function mlist:delete()
-		if self.sum==0 then return end
+		if self.sum==0 then return true end
 		local empty = self.pages[#self.pages]:delete()
 		self.sum = self.sum - 1
 		if empty then
 			table.remove(self.pages)
 			if #self.pages==0 then
-				print("emptied")
 				return true
 			end
 		end

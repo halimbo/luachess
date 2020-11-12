@@ -25,6 +25,30 @@ local function algebraic(pos,l,s,enpas,castles,queen)
 		return names[abs(pos[l])].."x"..letters[s.x]..s.y
 	end
 end
+local function clearly(moveMap,from,to,alg)
+	local id = moveMap[from].id
+	if abs(id)==1 or abs(id)==8 then return alg end
+	local dif
+	do8x8break(moveMap,function(s,l,x,y)
+			if not s or l==from then return false end 
+			if s.id==id and contains(s.moves,to) then
+				if dif then
+					dif = letters[from.x]..from.y
+					return true
+				elseif not (l.x==from.x) then
+					dif = letters[from.x]
+				else
+					dif = from.y
+				end
+			end
+	end)
+	if dif then
+		local prefix=alg:sub(1,1)
+		local suffix=alg:sub(2)
+		alg=prefix..dif..suffix
+	end
+	return alg
+end
 local function normal(pos,l,s)
 	local map = Map:copy(pos)
 	map[s] = map[l]
@@ -66,7 +90,7 @@ local function validate(pc,s)
 	return false
 end
 Turn = {}
-function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
+function Turn:new(pos,turn,freshmap,eptoken,change,drawCount)
 	local t = {}
 	local check,avail,double = inCheck(pos,turn,freshmap,eptoken)
 	if check and avail then
@@ -88,7 +112,6 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
 	t.kingPos = findKing(pos,turn)
 	t.freshmap = freshmap
 	t.change = change
-	t.lastAlg = lastAlg
 	t.move = turn%2==1 and math.floor(turn/2)+1 or turn/2 
 	t.drawCount = drawCount or 0
 	function t:make_move(l,s)
@@ -117,6 +140,7 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
 		else
 			new,alg = normal(pos,l,s)
 		end
+		alg = clearly(self.possible,l,s,alg)
 		-- new turn data
 		if abs(new[s]) == 1 and abs(l.y-s.y)==2 then
 			eptoken = loc:new( s.x, s.y-pc.id ) -- subtract pushed pawn
@@ -133,7 +157,7 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount,lastAlg)
 		if endless(pos,l,s) then
 			drawCount = self.drawCount +1
 		end
-		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s},drawCount,alg)
+		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s},drawCount),alg
 	end
 	return t
 end
