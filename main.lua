@@ -15,20 +15,10 @@ local resize
 local I
 local B
 local G
-local H = {}
 
 ----- GUI
 local leftIsDown = 0
 local rightIsDown = 0
-local M
-local LOG = {} 
-local function cut_log(turn)
-	local n = #LOG
-	while n>=turn do
-		table.remove(LOG)
-		n=n-1
-	end
-end
 
 function love.draw()
 	if resize then love.graphics.clear(0,0,0) return end
@@ -43,25 +33,12 @@ function love.draw()
 		B:drawFloat()
 	end
 	love.graphics.setBlendMode("alpha")
-	if M then
-		M:draw()
-	end
 end
 function love.load()
-	font = love.graphics.newFont("display/Roboto-Regular.ttf",19)
-	fontPaddingX = math.floor(font:getWidth("6")/2+0.5)
-	rowMoveWidth = math.floor(font:getWidth("6.")+0.5) + fontPaddingX*2
-	rowWidth = rowMoveWidth + math.floor(font:getWidth("Qxh6##+")*2+0.5) + fontPaddingX
-	fontHeight = font:getHeight()
-	rowHeight = math.floor(fontHeight+fontHeight/4+0.5)
 	local x,y = love.graphics.getDimensions()
 	local f = love.window.getFullscreen()
 	if not f then dim_x,dim_y = x,y end
-	local bdim, ld = Layout(x,y,f)
-	if ld then
-		M = Movelist(ld)
-	end
-	love.graphics.setFont(font)
+	local bdim = Layout(x,y,f)
 	G = Game(standard())
 	B = Board(standard())
 	B:init(bdim)
@@ -74,18 +51,7 @@ function love.update(dt)
 			resize = false
 			local x,y = love.graphics.getDimensions()
 			local f = love.window.getFullscreen()
-			local bdim,ld = Layout(x,y,f)
-			if ld then
-				M = Movelist(ld)
-				local move = 1
-				for i,s in ipairs(LOG) do
-					M:add(math.floor(move),s,i+1) --button No°1 --> Position No°2
-					move = move + 0.5
-				end
-				M:scroll(G.current.turn-1)
-			else
-				M = false
-			end
+			local bdim = Layout(x,y,f)
 			B:init(bdim)
 		end
 	end
@@ -97,23 +63,14 @@ function love.update(dt)
 			local info = G:lookback()
 			if info then
 				B:newPos(info)
-				if M then
-					M:scroll(info.lastTurn)
-				end
 			end
 			leftIsDown = 0
 		end
 	elseif love.keyboard.isDown("right") then
 		rightIsDown = rightIsDown + dt
 		if rightIsDown > 0.1 then
-			I:reset();B:setDiff("select",false)
-			if B.float then B:unsetFloat() end
-			local info = G:lookforward()
-			if info then
+			I:reset();B:setDiff("select",false) if B.float then B:unsetFloat() end local info = G:lookforward() if info then
 				B:newPos(info)
-				if M then
-					M:scroll(info.lastTurn)
-				end
 			end
 			rightIsDown = 0
 		end
@@ -136,9 +93,6 @@ function love.keypressed(key)
 		local info = G:lookback()
 		if info then
 			B:newPos(info)
-			if M then
-				M:scroll(info.lastTurn)
-			end
 		end
 		leftIsDown = -0.3
 	elseif key == "right" then
@@ -147,9 +101,6 @@ function love.keypressed(key)
 		local info = G:lookforward()
 		if info then
 			B:newPos(info)
-			if M then
-				M:scroll(info.lastTurn)
-			end
 		end
 		rightIsDown = -0.3
 	elseif key == "c" then
@@ -180,16 +131,6 @@ end
 function love.mousepressed(x,y,key)
 	if key==1 then
 		local click, here = B:click(x,y)
-		if not click then
-			I:reset()
-			B:setDiff("select",false)
-			local turn = M:click(x,y)
-			if turn then
-				local info = G:jumpto(turn)
-				B:newPos(info)
-			end
-			return
-		end
 		local sel, dest = I:mouseOn(here,G:isPiece(here))
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if not dest then
@@ -199,25 +140,9 @@ function love.mousepressed(x,y,key)
 			end
 		else
 			I:reset();B:setDiff("select",false)
-			local info, h, seen = G:tryMove(sel,dest)
+			local info = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if h then
-					table.insert(H,h)
-					cut_log(h.split)
-					table.insert(LOG,info.str)
-					if M then
-						M:cut(h.split)
-						M:add(info.lastMove,info.str,info.turn)
-					end
-				elseif seen then
-					M:scroll(info.lastTurn)
-				else
-					table.insert(LOG,info.str)
-					if M then
-						M:add(info.lastMove,info.str,info.turn)
-					end
-				end
 			elseif I:mouseOn(here,G:isPiece(here)) then
 				B:setDiff("select",click,C.yellow,0.7)
 				if I:float() then
@@ -242,25 +167,9 @@ function love.mousereleased(x,y,key)
 		if not sel then I:reset();B:setDiff("select",false) return end
 		if dest then
 			I:reset();B:setDiff("select",false)
-			local info,h,seen = G:tryMove(sel,dest)
+			local info = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
-				if h then
-					table.insert(H,h)
-					cut_log(h.split)
-					table.insert(LOG,info.str)
-					if M then
-						M:cut(h.split)
-						M:add(info.lastMove,info.str,info.turn)
-					end
-				elseif seen then
-					M:scroll(info.lastTurn)
-				else
-					table.insert(LOG,info.str)
-					if M then
-						M:add(info.lastMove,info.str,info.turn)
-					end
-				end
 			end
 		end
 	end
