@@ -1,64 +1,21 @@
 --global variables [ fontPaddingX,fontHeight,rowMoveWidth,rowWidth,rowHeight ]
-function Layout(x,y,f,zen)
-	local rows = 1
-	local lines = 3
+function Layout(x,y,f)
 	local b = {}
-	local mlist = {}
 	local horizontal = x>y and true or false
 	if not f and horizontal then
 		b.size = y
-		b.ox,b.oy = 0,0
-		mlist.ox = y
-		mlist.oy = 0
-		mlist.w = x-y
-		mlist.h = y
-		if zen or (mlist.w<rowWidth*rows or mlist.h<rowHeight*lines) then
-			b.ox,b.oy = math.floor(x/2-y/2+0.5),0
-			mlist = false
-		else
-			mlist.horizontal = horizontal
-		end
+		b.ox,b.oy = math.floor(x/2-y/2+0.5),0
 	elseif not f and not horizontal then
 		b.size = x
-		b.ox,b.oy = 0,0
-		mlist.ox = 0
-		mlist.oy = x
-		mlist.w = x
-		mlist.h = y-x
-		if zen or (mlist.w<rowWidth*rows or mlist.h<rowHeight*lines) then
-			b.ox,b.oy = 0,math.floor(y/2-x/2+0.5)
-			mlist = false
-		else
-			mlist.horizontal = horizontal
-		end
+		b.ox,b.oy = 0,math.floor(y/2-x/2+0.5)
 	elseif f and horizontal then
 		b.size = y
 		b.ox,b.oy = math.floor(x/2-y/2+0.5),0
-		if zen then
-			mlist = false
-		else
-		-- tbc if no space for mlist
-			mlist.ox = b.ox+b.size
-			mlist.oy = 0
-			mlist.w = x-y
-			mlist.h = y
-			mlist.horizontal = horizontal
-		end
 	elseif f and not horizontal then
 		b.size = x
 		b.ox,b.oy = 0,math.floor(y/2-x/2+0.5)
-		if zen then
-			mlist = false
-		else
-		-- tbc siehe oben
-			mlist.ox = 0
-			mlist.oy = b.oy+b.size
-			mlist.w = x
-			mlist.h = y-x
-			mlist.horizontal = horizontal
-		end
 	end
-	return b,mlist
+	return b
 end
 
 local function MoveButton(x,y,w,h,color,str,turn)
