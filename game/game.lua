@@ -25,7 +25,6 @@ function Game(pos)
 				kingToMove = T.kingPos }
 	end
 	function g:lookforward()
-		print("NTimeline",#self.timeline)
 		if self.current.turn == #self.timeline then return false end
 		local T = self.timeline[self.current.turn+1]
 		self.current = T
