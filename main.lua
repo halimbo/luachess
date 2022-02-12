@@ -17,6 +17,11 @@ local B
 local G
 
 ----- GUI
+local function reset()
+	I:reset();B:setDiff("select",false)
+	if B.float then B:unsetFloat() end
+end
+
 local leftIsDown = 0
 local rightIsDown = 0
 
@@ -58,8 +63,7 @@ function love.update(dt)
 	if love.keyboard.isDown("left") then
 		leftIsDown = leftIsDown + dt
 		if leftIsDown > 0.1 then
-			I:reset();B:setDiff("select",false)
-			if B.float then B:unsetFloat() end
+			reset()
 			local info = G:lookback()
 			if info then
 				B:newPos(info)
@@ -69,7 +73,9 @@ function love.update(dt)
 	elseif love.keyboard.isDown("right") then
 		rightIsDown = rightIsDown + dt
 		if rightIsDown > 0.1 then
-			I:reset();B:setDiff("select",false) if B.float then B:unsetFloat() end local info = G:lookforward() if info then
+			reset()
+			local info = G:lookforward()
+			if info then
 				B:newPos(info)
 			end
 			rightIsDown = 0
@@ -88,16 +94,14 @@ function love.keypressed(key)
 	elseif key == "f" then
 		B:Flip()
 	elseif key == "left" then
-		I:reset();B:setDiff("select",false)
-		if B.float then B:unsetFloat() end
+		reset()
 		local info = G:lookback()
 		if info then
 			B:newPos(info)
 		end
 		leftIsDown = -0.3
 	elseif key == "right" then
-		I:reset();B:setDiff("select",false)
-		if B.float then B:unsetFloat() end
+		reset()
 		local info = G:lookforward()
 		if info then
 			B:newPos(info)
@@ -132,14 +136,14 @@ function love.mousepressed(x,y,key)
 	if key==1 then
 		local click, here = B:click(x,y)
 		local sel, dest = I:mouseOn(here,G:isPiece(here))
-		if not sel then I:reset();B:setDiff("select",false) return end
+		if not sel then reset() return end
 		if not dest then
 			B:setDiff("select",click,C.yellow,0.7)
 			if I:float() then
 				B:newFloat(click)
 			end
 		else
-			I:reset();B:setDiff("select",false)
+			reset()
 			local info = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
@@ -148,29 +152,26 @@ function love.mousepressed(x,y,key)
 				if I:float() then
 					B:newFloat(click)
 				end
-			elseif B.float then
-				B:unsetFloat()
 			end
 		end
 	elseif key == 2 then
-		I:reset();B:setDiff("select",false)
-		B:unsetFloat()
+		reset()
 	end
 end
 function love.mousereleased(x,y,key)
 	if not B.float then return end
 	if key == 1 then
-		B:unsetFloat()
 		local click, here = B:click(x,y)
-		if not click then return end
+		if not click then reset() return end
 		local sel, dest = I:mouseOff(here)
-		if not sel then I:reset();B:setDiff("select",false) return end
+		if not sel then reset() return end
 		if dest then
-			I:reset();B:setDiff("select",false)
+			reset()
 			local info = G:tryMove(sel,dest)
 			if info then
 				B:newPos(info)
 			end
 		end
+		B:unsetFloat()
 	end
 end
