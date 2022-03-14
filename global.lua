@@ -111,7 +111,7 @@ function Map:copy(M)
 end
 function hasTurn(id,turn)
 	if turn%2==0 and not (id<0) then return false
-	elseif not (turn%2==0) and id<0 then return false end
+	elseif not (turn%2==0) and (id<0) then return false end
 	return true
 end
 function scrollTurn(pos,turn,f)
