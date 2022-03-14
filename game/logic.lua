@@ -56,7 +56,7 @@ local function castles_free(pos,l,x,y,freshmap)
 		ks = {l,loc:new(x+1,y),loc:new(x+2,y)}
 	end
 	if freshmap[l] and freshmap[1][y] and pos[4][y]==0 and pos[3][y]==0 and pos[2][y]==0 then
-		qs = {l,loc:new(x-1,y),loc:new(x-2,y),loc:new(x-3)}
+		qs = {l,loc:new(x-1,y),loc:new(x-2,y),loc:new(x-3,y)}
 	end
 	return ks,qs
 end
