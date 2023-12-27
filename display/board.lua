@@ -34,7 +34,7 @@ function Board(pos)
 	end
 	function d:drawSquare(h,c,alpha)
 		local map = self.boardMap
-		local square = self.boardSize/8
+		local square = self.squareSize
 		local r,g,b = love.graphics.getColor()
 		love.graphics.setColor(c.r,c.g,c.b,alpha)
 		love.graphics.rectangle( "fill", map[h].x,map[h].y, square, square)
@@ -53,13 +53,14 @@ function Board(pos)
 			pngSize = 150
 			pngFolder = "150"
 		end
-		local square = boardSize/8
+		local square = math.floor(boardSize/8+0.5)
+		self.squareSize = square
 		self.scale = 1/(pngSize/(square*0.96)) --scale *0.96
 		self.inputMap = InputMap(square,bX,bY)
 		self.pngMap = PngMap(square,bX,bY,pngSize,self.scale)
 		self.boardMap = BoardMap(square,bX,bY)
 		self.canvas = love.graphics.newCanvas(boardSize,boardSize)
-		self.canvasMap = CanvasMap(square) 
+		self.canvasMap = CanvasMap(square)
 		love.graphics.setCanvas(self.canvas)
 			love.graphics.setBlendMode("alpha")
 			self:drawBoard()
@@ -85,7 +86,7 @@ function Board(pos)
 	end
 	function d:drawBoard()
 		local map = self.canvasMap
-		local square = self.boardSize/8
+		local square = self.squareSize
 		local cW = self.colors[self.settings.color].cW
 		local cB = self.colors[self.settings.color].cB
 		white = true
