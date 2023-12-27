@@ -135,6 +135,7 @@ end
 function love.mousepressed(x,y,key)
 	if key==1 then
 		local click, here = B:click(x,y)
+		if not click then reset() return end
 		local sel, dest = I:mouseOn(here,G:isPiece(here))
 		if not sel then reset() return end
 		if not dest then
