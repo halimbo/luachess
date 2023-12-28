@@ -1,10 +1,12 @@
 require("global")
 require("game/logic")
 local function endless(pos,from,to)
-	if pos[to] == 0 or not (abs(pos[from])==1) then
-		return true
-	else
+	if not (pos[to] == 0) then --taking a piece
 		return false
+	elseif abs(pos[from]) == 1 then --moving a pawn
+		return false
+	else
+		return true
 	end
 end
 local function algebraic(pos,l,s,enpas,castles,queen)
@@ -59,8 +61,8 @@ local function castles(pos,l,s,rook0,rook)
 	local map = Map:copy(pos)
 	map[s] = map[l]
 	map[l] = 0
-	map[rook] = map[rook0]
-	map[rook0] = 0
+	map[rook] = map[rook0] --move the rook to new square
+	map[rook0] = 0 --remove the rook from original square
 	return map, algebraic(pos,l,s,nil,rook0.x)
 end
 local function enpas(pos,l,s,e)
@@ -147,15 +149,16 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount)
 			eptoken.id = 7*new[s]
 		end
 		local fmap = Map:copy(self.freshmap)
-		if fmap[l] then
-			fmap[l] = false
-		end
+		fmap[l] = false
+		fmap[s] = false
 		if cs then
 			fmap[ cs[1] ] = false
 		end
 		local drawCount
 		if endless(pos,l,s) then
 			drawCount = self.drawCount +1
+		else
+			drawCount = 0	--setting nil is okay, this is doubly unnecessary
 		end
 		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s},drawCount),alg
 	end

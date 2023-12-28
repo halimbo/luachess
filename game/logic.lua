@@ -50,13 +50,22 @@ local function aligned(a,b)
 	end
 	return false
 end
-local function castles_free(pos,l,x,y,freshmap)
+local function castles_free(pos,l,x,y,freshmap,id)
 	local ks,qs = false,false
-	if freshmap[l] and freshmap[8][y] and pos[7][y]==0 and pos[6][y]==0 then
-		ks = {l,loc:new(x+1,y),loc:new(x+2,y)}
+	local kingSpawnY
+	if id==8 then
+		kingSpawnY = 1
+	elseif id == -8 then
+		kingSpawnY = 8
+	else
+		print("ERROR CASTLES ID")
 	end
-	if freshmap[l] and freshmap[1][y] and pos[4][y]==0 and pos[3][y]==0 and pos[2][y]==0 then
-		qs = {l,loc:new(x-1,y),loc:new(x-2,y)}
+
+	if freshmap[5][kingSpawnY] and freshmap[8][kingSpawnY] and pos[7][kingSpawnY]==0 and pos[6][kingSpawnY]==0 then
+		ks = {loc:new(5,kingSpawnY),loc:new(6,kingSpawnY),loc:new(7,kingSpawnY)}
+	end
+	if freshmap[5][kingSpawnY] and freshmap[1][kingSpawnY] and pos[4][kingSpawnY]==0 and pos[3][kingSpawnY]==0 and pos[2][kingSpawnY]==0 then
+		qs = {loc:new(5,kingSpawnY),loc:new(4,kingSpawnY),loc:new(3,kingSpawnY)}
 	end
 	return ks,qs
 end
@@ -145,7 +154,7 @@ local function pinned(pos,pc,king)
 		if opponents(pos[otherSide],kingID) then
 			local enemy = abs(pos[otherSide])
 			if (enemy==3 or enemy==4 or enemy==5) and contains(directions[enemy],toKing) then
-				print(names[abs(pos[pc])].." on "..letters[pc.x]..pc.y,"pinned by ", names[enemy].." on "..letters[otherSide.x]..otherSide.y)
+--				print(names[abs(pos[pc])].." on "..letters[pc.x]..pc.y,"pinned by ", names[enemy].." on "..letters[otherSide.x]..otherSide.y)
 				local avail = {}
 				local s = pc:move(away)
 				while not (s==otherSide) do
@@ -202,7 +211,7 @@ function possible(pos,turn,freshmap,eptoken)
 			local atk = attackgen(pos,turn+1)
 			p[l] = { id = s }
 			p[l].moves = kingM(pos,l,atk)
-			local ks, qs = castles_free(pos,l,x,y,freshmap) --ks,qs --> squares that must not be attacked
+			local ks, qs = castles_free(pos,l,x,y,freshmap,s) --ks,qs --> squares that must not be attacked
 			if ks and castles_safe(atk,ks) then
 				local n = #p[l].moves+1
 				p[l].moves[n] = loc:new(7,y)
@@ -239,7 +248,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 					return true,false,true
 				else
 					for _,m in ipairs(escape) do
-						print("escape to "..letters[m.x]..m.y)
+--						print("escape to "..letters[m.x]..m.y)
 					end
 					available = Map:new(false)
 					available[kingPos] = {}
@@ -249,7 +258,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 				end
 			end
 			check = true
-			print("check")
+--			print("check")
 			local P = possible(pos,turn,freshmap,eptoken)
 			local kill
 			local blocks
@@ -257,7 +266,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 				if pc and not (abs(pc.id)==8) then
 					if contains(pc.moves, move.loc) then
 						kill = true
-						print(letters[l.x]..l.y,"can take on ", letters[move.loc.x]..move.loc.y)
+--						print(letters[l.x]..l.y,"can take on ", letters[move.loc.x]..move.loc.y)
 						if not available[l] then
 							available[l] = {}
 							available[l].id = pc.id
@@ -283,7 +292,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 							for _,b in ipairs(blocks) do
 								if contains(pc.moves, b) then
 									block_avail = true
-									print(letters[l.x]..l.y,"can block on ", letters[b.x]..b.y)
+--									print(letters[l.x]..l.y,"can block on ", letters[b.x]..b.y)
 									if not available[l] then
 										available[l] = {}
 										available[l].id = pos[l]
@@ -302,7 +311,7 @@ function inCheck(pos,turn,freshmap,eptoken)
 				escape = false
 			else
 				for _,m in ipairs(escape) do
-					print("escape to "..letters[m.x]..m.y)
+--					print("escape to "..letters[m.x]..m.y)
 				end
 				if not available[kingPos] then
 					available[kingPos] = {}
