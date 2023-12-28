@@ -158,7 +158,7 @@ function Turn:new(pos,turn,freshmap,eptoken,change,drawCount)
 		if endless(pos,l,s) then
 			drawCount = self.drawCount +1
 		else
-			drawCount = 0	--setting nil is okay, this is doubly unnecessary
+			drawCount = 0	--leaving it nil is okay, this is doubly unnecessary
 		end
 		return Turn:new(new,self.turn+1,fmap,eptoken,{l,s},drawCount),alg
 	end
