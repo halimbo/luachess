@@ -27,7 +27,6 @@ function loc:new(x,y)
 	end
 	function l:move(dir)
 		local new = self:v(dir)
-		if not new then print("errD",dir) return false end
 		return not outside(new) and new or false
 	end
 	function l:v(dir)
