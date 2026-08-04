@@ -223,10 +223,6 @@ function possible(pos,turn,freshmap,eptoken)
 				p[l].moves[n].castles = {loc:new(1,y),qs[2]}
 			end
 		end
-            -- NEW HOOK: Tell the visualizer this piece is done thinking
-            if coroutine.running() then
-                coroutine.yield(l, "piece_done")
-            end
 	end)
 	local kingPos = findKing(pos,turn)
 	scrollTurn(pos,turn,function(s,l)

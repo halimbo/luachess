@@ -7,49 +7,8 @@ function Board(pos)
 		style = 1,
 		color = 2
 	}
-
-    local shader_code = [[
-        extern number time;
-        extern vec2 squareSize;
-        extern number isHighlight;
-        extern vec2 boardOffset;
-
-        float rand(vec2 co) {
-            return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
-        }
-
-        vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
-            vec2 local_coords = screen_coords - boardOffset;
-            vec2 uv = mod(local_coords, squareSize) / squareSize;
-
-            vec2 centered = abs(uv - 0.5);
-            float boxDist = max(centered.x, centered.y);
-
-            // Softer, wider falloff for an airy, whispered look
-            float tileMask = 1.0 - smoothstep(0.25, 0.49, boxDist);
-
-            float pulse = 1.0;
-            if (isHighlight > 0.5) {
-                vec2 gridId = floor(local_coords / squareSize);
-                float phase = rand(gridId) * 6.2831;
-
-                // LOWER BASELINE: Ranges between 0.1 and 0.5 opacity. 
-                // This keeps it feeling like a faint shimmer rather than a flashlight.
-                pulse = 0.3 + 0.2 * sin((time * 6.0) + phase);
-            }
-
-            return vec4(color.rgb, color.a * tileMask * pulse);
-        }
-    ]]
-
-    d.squareShader = love.graphics.newShader(shader_code)
-    d.shaderTime = 0
-
 	d.styles = {"merida","alpha","leipzig"}
-        d.colors = {
-            {    cW = C.slate_light,
-                 cB = C.slate_dark
-            },
+	d.colors = {
 		{	cW = C.style1W,
 			cB = C.style1B
 		},
@@ -73,32 +32,14 @@ function Board(pos)
 			self.diff[type] = false
 		end
 	end
-
-    function d:drawSquare(h, c, alpha, is_animated)
-        local map = self.boardMap
-        local square = self.squareSize
-        local r, g, b = love.graphics.getColor()
-
-        love.graphics.setColor(c.r, c.g, c.b, alpha)
-
-        if is_animated then
-            -- The Cyberpunk Shader (Vignette + Pulse) exclusively for raycasts
-            self.squareShader:send("squareSize", {square, square})
-            self.squareShader:send("boardOffset", {self.bX, self.bY})
-            self.squareShader:send("time", self.shaderTime)
-            self.squareShader:send("isHighlight", 1.0)
-
-            love.graphics.setShader(self.squareShader)
-            love.graphics.rectangle("fill", map[h].x, map[h].y, square, square)
-            love.graphics.setShader()
-        else
-            -- Vanilla Flat Rectangle Fill for select, from, and to
-            love.graphics.rectangle("fill", map[h].x, map[h].y, square, square)
-        end
-
-        love.graphics.setColor(r, g, b)
-    end
-
+	function d:drawSquare(h,c,alpha)
+		local map = self.boardMap
+		local square = self.squareSize
+		local r,g,b = love.graphics.getColor()
+		love.graphics.setColor(c.r,c.g,c.b,alpha)
+		love.graphics.rectangle( "fill", map[h].x,map[h].y, square, square)
+		love.graphics.setColor(r,g,b)
+	end
 	function d:init(t)
 		local boardSize = t.size
 		local bX,bY = t.ox,t.oy
