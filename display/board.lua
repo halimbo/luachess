@@ -32,14 +32,17 @@ function Board(pos)
 			self.diff[type] = false
 		end
 	end
-	function d:drawSquare(h,c,alpha)
-		local map = self.boardMap
-		local square = self.squareSize
-		local r,g,b = love.graphics.getColor()
-		love.graphics.setColor(c.r,c.g,c.b,alpha)
-		love.graphics.rectangle( "fill", map[h].x,map[h].y, square, square)
-		love.graphics.setColor(r,g,b)
-	end
+        function d:drawSquare(h,c,alpha)
+        local map = self.boardMap
+        local square = self.squareSize
+        local r,g,b = love.graphics.getColor()
+        love.graphics.setColor(c.r,c.g,c.b,alpha)
+
+        -- FIX: Explicitly extract h.x and h.y since map is now a primitive 2D table
+        love.graphics.rectangle( "fill", map[h.x][h.y].x, map[h.x][h.y].y, square, square)
+
+            love.graphics.setColor(r,g,b)
+        end
 	function d:init(t)
 		local boardSize = t.size
 		local bX,bY = t.ox,t.oy
