@@ -55,6 +55,9 @@ local function get_atk_node(target_loc, id, origin_loc, dir)
     sp_cursor = (sp_cursor % SP_POOL_SIZE) + 1
     a.x = target_loc.x; a.y = target_loc.y
     a.id = id; a.loc = origin_loc; a.dir = dir
+
+    a.castles = nil -- Sanitize ghost state
+    a.enpas = nil
     return a
 end
 
@@ -63,6 +66,8 @@ local function get_special_move(target_loc, castles_table)
     sp_cursor = (sp_cursor % SP_POOL_SIZE) + 1
     sp.x = target_loc.x; sp.y = target_loc.y
     sp.castles = castles_table
+
+    sp.id = nil; sp.loc = nil; sp.dir = nil; sp.enpas = nil -- Sanitize ghost state
     return sp
 end
 

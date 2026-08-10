@@ -66,10 +66,46 @@ local map_cursor = 1
 
 local map_mt = {
     __index = function(self, k)
-        if type(k) == "table" then return self.storage[k.x][k.y] else return self.storage[k] end
+        if type(k) == "table" then
+            -- Verify it has actual coordinates
+            if k.x ~= nil and k.y ~= nil then
+                local row = self.storage[k.x]
+                if row then
+                    return row[k.y]
+                else
+                    print("[MAP __index OOB TRAP] Read out of bounds -> X: " .. tostring(k.x) .. ", Y: " .. tostring(k.y))
+                    print(debug.traceback())
+                    return nil
+                end
+            else
+                print("[MAP __index MALFORMED TRAP] Map read using a table missing X/Y properties!")
+                print(debug.traceback())
+                return self.storage[k]
+            end
+        else
+            return self.storage[k]
+        end
     end,
+
     __newindex = function(self, k, v)
-        if type(k) == "table" then self.storage[k.x][k.y] = v else self.storage[k] = v end
+        if type(k) == "table" then
+            -- Verify it has actual coordinates
+            if k.x ~= nil and k.y ~= nil then
+                local row = self.storage[k.x]
+                if row then
+                    row[k.y] = v
+                else
+                    print("[MAP __newindex OOB TRAP] Write out of bounds -> X: " .. tostring(k.x) .. ", Y: " .. tostring(k.y))
+                    print(debug.traceback())
+                end
+            else
+                print("[MAP __newindex MALFORMED TRAP] Map write using a table missing X/Y properties!")
+                print(debug.traceback())
+                self.storage[k] = v
+            end
+        else
+            self.storage[k] = v
+        end
     end
 }
 
