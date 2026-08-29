@@ -1,3 +1,5 @@
+Note: The release from Dec 28, 2025 does not contain any AI-generated code.  
+
 Windows -> run LuaChess.exe.
 
 Linux -> install love2d with your distributions package manager and run luachess.love.
